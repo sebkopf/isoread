@@ -1,0 +1,24 @@
+Package: isoread
+Type: Package
+Title: Read IRMS data from isodat files.
+Version: 0.1
+Date: 2014-03-17
+Author: Sebastian Kopf
+Maintainer: Sebastian Kopf <seb.kopf@gmail.com>
+Description: R interface for accessing isotope ratio mass spectrometry data
+    stored in isodat files.
+License: GPL-2
+LazyLoad: yes
+Depends:
+    testthat,
+    plyr,
+    reshape2,
+    ggplot2
+Collate:
+    'BinaryFileClass.R'
+    'IrmsDataClass.R'
+    'IrmsContinuousFlowDataClass.R'
+    'IrmsDualInletDataClass.R'
+    'IsodatFileClass.R'
+    'IsodatHydrogenContinuousFlowFileClass.R'
+    'isoread.R'

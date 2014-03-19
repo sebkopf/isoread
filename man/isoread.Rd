@@ -1,0 +1,32 @@
+\name{isoread}
+\alias{isoread}
+\title{Reads isodat file(s) and returns the contents as file type specific
+instances of \code{BinaryFile} / \code{IrmsDataClass} (extends both).}
+\usage{
+isoread(files, type, ...)
+}
+\arguments{
+  \item{file}{path to the file(s) to read}
+
+  \item{type}{type of the files to be read \itemize{
+  \item{'H_CSIA'}{ = compound specific IRMS data for
+  hydrogen isotopes} }}
+
+  \item{...}{parameters passed to the \code{load} and
+  \code{process} functions of the IsodatFile objects}
+}
+\value{
+List of file \code{type} specific objects. \itemize{
+\item{'H_CSIA'}{ = instance(s) of
+\code{IsodatHydrogenContinuousFlowFile} which implements
+\code{IrmsContinuousFlowData}}. } If file names start with
+a number, then the number is used as key in the list,
+otherwise the whole filename is the key. If there is only
+one file, the object is returned directly.
+}
+\description{
+Reads isodat file(s) and returns the contents as file type
+specific instances of \code{BinaryFile} /
+\code{IrmsDataClass} (extends both).
+}
+

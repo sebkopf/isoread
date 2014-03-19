@@ -1,0 +1,23 @@
+\name{parse_binary_data}
+\alias{parse_binary_data}
+\title{Convenience wrapper for parsing binary data.
+For more details on reading binary data, check ?readBin}
+\usage{
+parse_binary_data(data, type, length = 1)
+}
+\arguments{
+  \item{type}{data type see
+  \code{\link{map_binary_data_type}} for details}
+
+  \item{length}{how many instances of this object (for
+  characters and raw this means length of string, all
+  others a vector)}
+}
+\value{
+read data
+}
+\description{
+Convenience wrapper for parsing binary data. For more
+details on reading binary data, check ?readBin
+}
+

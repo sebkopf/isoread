@@ -1,0 +1,7 @@
+export(isoread)
+export(isoread_folder)
+export(map_binary_data_type)
+export(parse_binary_data)
+exportClasses(BinaryFile)
+exportClasses(IrmsContinuousFlowData)
+exportClasses(IsodatHydrogenContinuousFlowFile)
