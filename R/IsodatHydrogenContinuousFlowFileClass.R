@@ -12,18 +12,32 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
     #' initialize
     initialize = function(...) {
       callSuper(...)
-      initDefaultPlotOptions()
+      init_irms_data()
     },
     
-    #' Set the default plot options
-    initDefaultPlotOptions = function(){
-      callSuper(
+    #' initialize irms data container
+    init_irms_data = function(){
+      callSuper()
+      
+      # mass and ratio plot options
+      set_plot_options(
         masses = list(
           mass2 = list(label = "Mass 2", color="black", offset=200), #offset in mV
           mass3 = list(label = "Mass 3", color="dark green", offset=0)),
         ratios = list ( 
           ratio_3o2 = list(label = "Ratio", color="black", offset=0))
         )
+      
+      # peak table definition
+      peakTableColumns <<- data.frame(
+        data = c('Filename', 'Peak Nr.', 'Ref. Peak', 'Status', 'Component', 'Master Peak', 'Ref. Name', 'Start\n[s]', 'Rt\n[s]', 'End\n[s]', 'Width\n[s]', 'Ampl. 2\n[mV]', 'Ampl. 3\n[mV]', 'BGD 2\n[mV]', 'BGD 3\n[mV]', 'Area All\n[Vs]', 'Area 2\n[Vs]', 'Area 3\n[Vs]', 'rArea All\n[mVs]', 'rArea 2\n[mVs]', 'rArea 3\n[mVs]', 'R 3H2/2H2\n', 'rR 3H2/2H2\n', 'rd 3H2/2H2\n[per mil]\nvs. methane ref', 'd 3H2/2H2\n[per mil]\nvs. VSMOW', 'DeltaDelta 3H2/2H2\n[0 ]', 'R 2H/1H', 'd 2H/1H\n[per mil]\nvs. VSMOW', 'AT% 2H/1H\n[%]'),
+        type = c("character", "integer", "logical", "character", "character", "character", "character", rep("numeric", 22)),
+        show = TRUE, stringsAsFactors = FALSE)
+      peakTableColumns <<- mutate(
+        peakTableColumns,
+        column = sub('^([^\n]+).*', '\\1', data), # pull out column names from the data names
+        units = sub('\n', ' ', sub('^[^\n]+(\n)?(.*)$', '\\2', data))) # pull out units from the data names
+        
     },
     
     #' expand parent load function with key_cleanup
@@ -81,13 +95,46 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       data$Filename <<- find_key(".cf$")
       data$ASprogram <<- find_key("Internal")
       
-      # reorganize data to fit 
+      # reorganize data, move to IrmsDataClass structure
       if (readChromData) {
         chromData <<- cbind(data$mass, data$ratio['ratio_3o2'])
         data$mass <<- data$ratio <<- NULL
       }
+      
+      # peak table (FIXME: this could use some refactoring)      
+      rawtable <- rawdata[subset(keys, value=="CPkDataListBox")$byteEnd:subset(keys, value=="CGCPeakList")$byteStart]
+      arials <- grepRaw("([Arial][^\u0020-\u007e]){5}", rawtable, all=TRUE)
+      #FIXME: newer versions of isodat (2.5 and 3.1 don't have this business, just 18 bytes between each label!)
+      if (length(arials) > 5) {
+        entries<-NULL
+        spos <- 9 + (regexpr("14000000fffeff08", paste(readBin(rawtable[1:(arials[1]-48)], "raw", n=(arials[1]-48)), collapse=""), fixed=TRUE)-1)/2
+        for (i in arials) {
+          epos<-(i-48)
+          entries<-c(entries, paste(readBin(rawtable[spos:epos], "character", n=(epos-spos)/2, size=2), collapse=""))
+          spos<-i+100
+        }
+        table<-matrix(entries[-length(entries)], byrow=TRUE, ncol=27) # FIXME not sure this is always true that it's 27 columns but appears to be the case
+        df<-data.frame(table[2:nrow(table),], stringsAsFactors=FALSE)
+        names(df)<-table[1,]
+        
+        # process peak nr
+        if ( !('Peak Nr.' %in% names(df) ))
+          stop("'Peak Nr.' column not found in peak table. Only available columns are ", paste0(names(df), collapse = ", "))
+        
+        peakNrPattern <- "^([0-9]+)([\\*\\+]?)$"
+        df <- mutate(
+          df,
+          `Ref. Peak` = sub(peakNrPattern, '\\2', `Peak Nr.`) == "*", # whether it is a reference peak
+          Status = sapply(sub(peakNrPattern, '\\2', `Peak Nr.`), # whether peak was added
+                          function(x) { if (x=="+") "Added" else "Auto" }),
+          `Peak Nr.` = as.integer(sub(peakNrPattern, '\\1', `Peak Nr.`))) # peak number as integer
+        
+        # store peak table data
+        peakTable <<- df
+      } 
+      
     },
-    
+
     #' custom show function to display roughly what data we've got going
     show = function() {
       cat("\nShowing summary of", class(.self), "\n")

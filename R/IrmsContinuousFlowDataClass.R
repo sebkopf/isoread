@@ -8,12 +8,16 @@ IrmsContinousFlowData <- setRefClass(
   contains = "IrmsData",
   fields = list (
     chromData = 'data.frame', # chromatographic data
-    peakTable = 'data.frame' # table of peaks
+    peakTable = 'data.frame', # table of peaks
+    peakTableColumns = 'data.frame' # the columns of the peak table    
     ),
   methods = list(
-    #' sets default plot options
-    initDefaultPlotOptions = function(...) {
-      callSuper(
+    #' initialize irms data container
+    init_irms_data = function() {
+      callSuper()
+      
+      # default plot options
+      set_plot_options(
           tunits = list(value = 1, labels = c("s", "min"), funcs = c(function(x) x, function(x) x/60)),
           labels = list(x="Time", ymasses = "Signal [mV]", yratios = "Ratio"),
           masses = list(), # example entry: mass1 = list(label = "Mass 1", color="black", offset=200) # offset in mV
@@ -21,7 +25,86 @@ IrmsContinousFlowData <- setRefClass(
           baseMarker = list(on = TRUE, color="red"),
           apexMarker = list(on = TRUE, color="red"),
           edgeMarker = list(on = TRUE, color="blue"))
-      setPlotOptions(...)
+      
+      # template for peakTableColumn definitions
+      # data - name of the column header for in the data
+      # column - name of the column stored in the peak table
+      # units - units of the data are in
+      # type - which mode it is (character, numeric, logical)
+      # show - whether to show this column in standard peak table outputs
+      peakTableColumns <<- data.frame(data = character(), column = character(), units = character(), type = character(), show = logical(), stringsAsFactors = FALSE)
+    },
+    
+    #' check the data consistency
+    #' calls check_chrom_data and check_peak_data
+    check_data = function(...) {
+      callSuper(...)
+      check_chrom_data(...)
+      check_peak_table(...)
+    },
+    
+    #' check the consistency of the chromatographic data
+    #' by default checks for all masses and ratios defined in plot options
+    #' @param warn whether to throw warnings
+    check_chrom_data = function(masses = names(.self$plotOptions$masses), 
+                                ratios = names(.self$plotOptions$ratios), ..., warn = TRUE) {
+      
+      if (length(missing <- setdiff(masses, names(.self$plotOptions$masses))) > 0)
+        stop("Some mass traces ('", paste(missing, collapse = ", ") ,"') are not defined in plotOptions$masses.")
+      
+      if (ncol(chromData) > 0 && length(missing <- setdiff(masses, names(chromData))) > 0)
+        stop("Some mass traces ('", paste(missing, collapse = ", ") ,"') are not available from the chromatographic data.")
+      
+      if (length(missing <- setdiff(ratios, names(.self$plotOptions$ratios))) > 0)
+        stop("Some ratio traces ('", paste(missing, collapse = ", ") ,"') are not defined in plotOptions$ratios.")
+      
+      if (ncol(chromData) > 0 && length(missing <- setdiff(ratios, names(chromData))) > 0)
+        stop("Some ratio traces ('", paste(missing, collapse = ", ") ,"') are not available from the chromatographic data.")
+      
+      if (ncol(chromData) == 0 && warn)
+        warning("No chromatographic data currently loaded.")
+    },
+    
+    #' check the consistency of the peak table and convert to the necessary
+    #' data types
+    #' @param warn whether to warn about changed to the peak table (e.g. enforcing data types)
+    check_peak_table = function(..., warn = TRUE) {
+      if (ncol(peakTable) > 0) {
+        
+        # check for all peakTable columns existence
+        if (length(missing <- setdiff(peakTableColumns$column, names(peakTable))) > 0) {
+          # for the missing columns, try to find and convert the original data column names to the peakTable names (easier to access)
+          ptc_indices <- which(peakTableColumns$column %in% missing) # indices of missing columns in peakTableColumns
+          if (length(missing <- setdiff(peakTableColumns$data[ptc_indices], names(peakTable))) > 0)
+            stop("Some data columns ('", paste(missing, collapse = ", ") ,"') do not exist in the loaded peakTable.")
+          
+          # change original column names to new name 
+          pt_cols <- sapply(peakTableColumns$data[ptc_indices], function(i) which(names(peakTable) == i), simplify = TRUE)
+          names(peakTable)[pt_cols] <<- peakTableColumns$column[ptc_indices]
+        }
+        
+        # bring peak columns into right order
+        peakTable <<- peakTable[peakTableColumns$column]
+        
+        # check for proper class and convert if necessary
+        if (any(types <- (sapply(peakTable, class, simplify=T) != peakTableColumns$type))) {
+          ptc_indices <- which(types) # indices of the columns to convert
+          if (warn)
+            message("Converting data types of peak table columns: ", paste0(peakTableColumns$column[ptc_indices], collapse = ", "))
+          
+          for (i in ptc_indices) {
+            data <- suppressWarnings(try(switch(peakTableColumns$type[i],
+                         "integer" = as.integer(peakTable[[peakTableColumns$column[i]]]),
+                         "character" = as.character(peakTable[[peakTableColumns$column[i]]]),
+                         "numeric" = as.numeric(peakTable[[peakTableColumns$column[i]]]),
+                         "logical" =  as.logical(peakTable[[peakTableColumns$column[i]]])),
+                  TRUE))
+            peakTable[[peakTableColumns$column[i]]] <<- data
+          }
+        }
+                
+      } else if (warn)
+        warning("No peak table data currently loaded.")
     },
     
     #' get data for masses
@@ -31,11 +114,9 @@ IrmsContinousFlowData <- setRefClass(
     #' object keep me from storing extra information in chromData
     get_mass_data = function(masses = names(.self$plotOptions$masses), melt = FALSE) {
       # checks
-      if (length(missing <- setdiff(masses, names(.self$plotOptions$masses))) > 0)
-        stop("Some mass traces ('", paste(missing, collapse = ", ") ,"') are not defined in plotOptions$masses.")
-      
-      if (length(missing <- setdiff(masses, names(chromData))) > 0)
-        stop("Some mass traces ('", paste(missing, collapse = ", ") ,"') are not available from the chromatographic data.")
+      if (nrow(chromData) == 0)
+        stop("No chromatographic data available.")
+      check_chrom_data(masses = masses, ratios = c())
 
       # data
       data <- subset(chromData, select = c("time", masses))
@@ -65,11 +146,9 @@ IrmsContinousFlowData <- setRefClass(
     #' @param melt whether to melt the data frame
     get_ratio_data = function(ratios = names(.self$plotOptions$ratios), melt = FALSE) {
       # checks
-      if (length(missing <- setdiff(ratios, names(.self$plotOptions$ratios))) > 0)
-        stop("Some ratio traces ('", paste(missing, collapse = ", ") ,"') are not defined in plotOptions$ratios.")
-      
-      if (length(missing <- setdiff(ratios, names(chromData))) > 0)
-        stop("Some ratio traces ('", paste(missing, collapse = ", ") ,"') are not available from the chromatographic data.")
+      if (nrow(chromData) == 0)
+        stop("No chromatographic data available.")
+      check_chrom_data(masses = c(), ratios = ratios)
       
       # data
       data <- subset(chromData, select = c("time", ratios))
@@ -87,6 +166,8 @@ IrmsContinousFlowData <- setRefClass(
     },
     
     #' Plot the data (both masses and ratios) - much faster than ggplot but not as versatile
+    #' 
+    #' @aliases isoplot
     #' @param tlim time range, should be in the same tunits
     #' @param masses which masses to plot (all defined in plot optinos by default)
     #' @param ratios which ratios to plot (all defined in plot options by default)

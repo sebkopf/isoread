@@ -1,3 +1,15 @@
+#' R interface to IRMS (isotope ratio mass spectrometry) file formats typically used in stable isotope geochemistry.
+#' 
+#' See \code{\link{isoread}} for details on how to use.
+#' 
+#' @name isoread-package
+#' @aliases isoreadinfo
+#' @docType package
+#' @title isoread package
+#' @keywords package
+#' @author Sebastian Kopf \email{seb.kopf@gmail.com}
+NULL
+
 #' @include IsodatHydrogenContinuousFlowFileClass.R
 NULL
 
@@ -31,6 +43,7 @@ isoread <- function(files, type, ...) {
     obj <- new(typeClass, file)
     obj$load(...)
     obj$process(...)
+    obj$check_data(...)
     obj
   })
   
@@ -39,6 +52,7 @@ isoread <- function(files, type, ...) {
 }
 
 #' Reads all isodat files in a folder.
+#' 
 #' See \code{\link{isoread}} for paramter and return value details.
 #' @export
 isoread_folder <- function(folder, type, extension = '.cf', ...) {

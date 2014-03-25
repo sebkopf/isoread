@@ -1,4 +1,5 @@
 #' IrmsData reference class
+#' 
 #' @note not sure yet what's best to abstract into this one
 IrmsData <- setRefClass(
   "IrmsData",
@@ -8,15 +9,21 @@ IrmsData <- setRefClass(
   methods = list(
     #' constructor
     #' @param plotOptions list of custom plotOptions
-    initialize = function(plotOptions = list(), ...) {
-      callSuper(...)
-      initDefaultPlotOptions(plotOptions)
+    initialize = function() {
+      init_irms_data()
+    },
+    
+    #' initialize irms data class
+    #' @param plotOptions list of plot options to initialize the data container with
+    init_irms_data = function() {
+      plotOptions <<- list()
     },
     
     #' Set plot options
     #' @example setSettings(a=5, b='test', ...)
     #' @example setSettings(list(a=5, b='test', ...))
-    setPlotOptions = function(...) {
+    #' @note fix the naming schizophrenia (some are lower some opper gase)
+    set_plot_options = function(...) {
       # if the first argument is an unnamed list then just use this list
       if ( nargs() == 1L && is.list(..1) &&
              (is.null(names(list(...))) || (names(list(...))[[1L]] == "")) )  {
@@ -28,12 +35,9 @@ IrmsData <- setRefClass(
       plotOptions <<- modifyList(plotOptions, options)
     },
     
-    #' Set the defaul plot options
-    #' @param ... additional plot options to set
-    #' @note override in derived classes
-    initDefaultPlotOptions = function(...) {
-      plotOptions <<- list() # reset
-      setPlotOptions(...)
+    #' check internal consistency of data
+    check_data = function(...) {
+      
     },
     
     #' Plot data
