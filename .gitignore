@@ -5,3 +5,4 @@
 # Example code in package build process
 .R*
 *.*~
+.Rproj.user
