@@ -3,6 +3,7 @@
 NULL
 
 #' Isodat file class
+#' @rdname IsodatHydrogenContinuousFlowFile
 #' @exportClass IsodatHydrogenContinuousFlowFile
 IsodatHydrogenContinuousFlowFile <- setRefClass(
   "IsodatHydrogenContinuousFlowFile",

@@ -1,6 +1,7 @@
 #' IrmsData reference class
 #' 
 #' @note not sure yet what's best to abstract into this one
+#' @rdname IrmsData
 IrmsData <- setRefClass(
   "IrmsData",
   fields = list (

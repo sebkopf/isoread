@@ -56,6 +56,7 @@ map_binary_data_type <- function(
 
 
 #' Binary File reference class
+#' @rdname BinaryFile
 #' @exportClass BinaryFile
 BinaryFile <- setRefClass(
   "BinaryFile",

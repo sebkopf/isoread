@@ -3,6 +3,7 @@ NULL
 
 #' IrmsContinuousFlowData reference class
 #' @exportClass IrmsContinuousFlowData
+#' @rdname IrmsContinuousFlowData
 IrmsContinousFlowData <- setRefClass(
   "IrmsContinuousFlowData",
   contains = "IrmsData",
