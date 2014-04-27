@@ -10,7 +10,8 @@ IrmsContinousFlowData <- setRefClass(
   fields = list (
     chromData = 'data.frame', # chromatographic data
     peakTable = 'data.frame', # table of peaks
-    peakTableColumns = 'data.frame' # the columns of the peak table    
+    peakTableColumns = 'data.frame', # the columns of the peak table   
+    peakTableKeys = 'character' # peak table column keys of importance
     ),
   methods = list(
     #' initialize irms data container
@@ -31,10 +32,21 @@ IrmsContinousFlowData <- setRefClass(
       # data - name of the column header for in the data
       # column - name of the column stored in the peak table
       # units - units of the data are in
-      # type - which mode it is (character, numeric, logical)
+      # type - which mode it is (character, numeric, logical, Ratio, Abundance, Delta)
       # show - whether to show this column in standard peak table outputs
       peakTableColumns <<- data.frame(data = character(), column = character(), units = character(), type = character(), show = logical(), stringsAsFactors = FALSE)
+      
+      # peak table keys
+      # peak_nr = column that identifies the peak number
+      # ref_peak = column that identifies reference peak column (T/F)
+      # rt = column that holds the retention time
+      # rt_start = column that holds the retention time at the start of the peak
+      # rt_end = column that holds the retentio time at the end of the peak
+      # name = column that holds the compound names
+      peakTableKeys <<- c(peak_nr = "", ref_peak = "", rt = "", rt_start = "", rt_end = "", name = "")
     },
+
+    # DATA CHECKS ============================
     
     #' check the data consistency
     #' calls check_chrom_data and check_peak_data
@@ -90,22 +102,54 @@ IrmsContinousFlowData <- setRefClass(
         # check for proper class and convert if necessary
         if (any(types <- (sapply(peakTable, class, simplify=T) != peakTableColumns$type))) {
           ptc_indices <- which(types) # indices of the columns to convert
-          if (warn)
-            message("Converting data types of peak table columns: ", paste0(peakTableColumns$column[ptc_indices], collapse = ", "))
-          
+          if (warn) {
+            info <- paste0(peakTableColumns$column[ptc_indices], " (to ", peakTableColumns$type[ptc_indices], ")")
+            message("Converting data types of peak table columns: ", paste0(info, collapse = ", "))
+          }
+            
           for (i in ptc_indices) {
+            data <- peakTable[[peakTableColumns$column[i]]]
             data <- suppressWarnings(try(switch(peakTableColumns$type[i],
-                         "integer" = as.integer(peakTable[[peakTableColumns$column[i]]]),
-                         "character" = as.character(peakTable[[peakTableColumns$column[i]]]),
-                         "numeric" = as.numeric(peakTable[[peakTableColumns$column[i]]]),
-                         "logical" =  as.logical(peakTable[[peakTableColumns$column[i]]])),
+                         "integer" = as.integer(data),
+                         "character" = as.character(data),
+                         "numeric" = as.numeric(data),
+                         "logical" =  as.logical(data),
+                         "Ratio" = ratio(as.numeric(data)), 
+                         "Abundance" = abundance(as.numeric(data)),
+                         "Delta" = delta(as.numeric(data)),
+                         stop("data type not supported: ", peakTableColumns$type[i])),
                   TRUE))
             peakTable[[peakTableColumns$column[i]]] <<- data
           }
         }
+        
+        # bring peak rows into right order (sorted by retention time)
+        peakTable[order(peakTable[[peakTableKeys["rt"]]]),] ->> peakTable
                 
       } else if (warn)
         warning("No peak table data currently loaded.")
+    },
+    
+    # DATA RETRIEVAL ==============
+    
+    #' Get peak table from the data class
+    #' @param type which type of columns to get
+    get_peak_table = function(type = c("ref", "data", "both")) {
+      if (missing(type)) type <- "both"
+      type <- match.arg(type)
+      
+      if (ncol(peakTable) == 0) {
+        warning("No peak table data currently loaded.")
+        return (NULL)
+      }
+      
+      if (type == "ref") {
+        return (peakTable[peakTable[[peakTableKeys["ref_peak"]]] == TRUE, ])
+      } else if (type == "data") {
+        return (peakTable[peakTable[[peakTableKeys["ref_peak"]]] == FALSE, ])
+      } else {
+        return (peakTable)
+      }
     },
     
     #' get data for masses
@@ -135,8 +179,8 @@ IrmsContinousFlowData <- setRefClass(
         offsets <- paste0(masses, ".offset")
         mass.melt <- melt(
           subset(data, select = which(!names(data)%in%offsets)),
-          measure = masses, value.name = "signal")
-        offset.melt <- melt(subset(data, select = offsets), value.name = "signal.offset")
+          measure.vars = masses, value.name = "signal")
+        offset.melt <- melt(subset(data, select = offsets), measure.vars = offsets, value.name = "signal.offset")
         return (cbind(mass.melt, offset.melt["signal.offset"]))
       } else
         return(data)
@@ -164,6 +208,177 @@ IrmsContinousFlowData <- setRefClass(
         return (melt(data, measure = ratios, value.name = "signal"))
       else
         return(data)
+    },
+    
+    # PEAK IDENTIIFICATON AND UPDATE =============
+  
+    #' Find peak numbers by retention time
+    #' @param rts - the retention time(s) to look for
+    #' @param select - the columns to select
+    #' @return returns a vector of found peak numbers (integer(0) if none found)
+    get_peak_nr_by_rt = function(rts) {
+      if (is.null(get_peak_table())) 
+        stop("can't search for peaks without a peak table")
+      
+      unlist(sapply(rts, function(rt) {
+        peakTable[peakTable[[peakTableKeys["rt_start"]]] <= rt & 
+                    rt <= peakTable[[peakTableKeys["rt_end"]]], peakTableKeys["peak_nr"], drop = T]
+      }))
+    },
+    
+    #' Get peaks in the peak table
+    #' @param peak_nr - the peak numbers to get
+    #' @param select - the columns to select
+    #' @return returns the data frame of found peaks (0-row df if none found)
+    get_peak = function(peak_nr, select = names(peakTable)) {
+      if (is.null(get_peak_table())) 
+        stop("can't search for peaks without a peak table")
+      peakTable[peakTable[[peakTableKeys["peak_nr"]]] %in% peak_nr, select]
+    },
+    
+    #' Get peaks by rt
+    #' @param rts 
+    get_peak_by_rt = function(rts, select = names(peakTable)) {
+      peak_nrs <- get_peak_nr_by_rt(rts)
+      get_peak(peak_nrs, select = select)
+    },
+    
+    #' Set peak(s) columns
+    #' @param peak_nr - peak number(s) to update with the provided attributes
+    #' @param ... - peak columns to change (only one value per attribute allowed!)
+    set_peak = function(peak_nr, ...){
+      if (is.null(get_peak_table())) 
+        stop("can't change peaks without a peak table")
+      
+      attribs <- list(...)
+      if (length(attribs) == 1L && is(attribs[[1]], "list"))
+        attribs <- attribs[[1]]
+      
+      if (any(! names(attribs) %in% names(peakTable)))
+        stop("not all attributes names are defined in the peak table")
+      if (any(sapply(attribs, length) != 1))
+        stop("multiple values supplied, only exactly one per attribute allowed")
+      peakTable[peakTable[[peakTableKeys["peak_nr"]]] %in% peak_nr, names(attribs)] <<- attribs
+    },
+    
+    #' set peak(s) columns by retention time
+    set_peak_by_rt = function(rts, ...) {
+      peak_nrs <- get_peak_nr_by_rt(rts)
+      set_peak(peak_nrs, ...)
+    },
+    
+    #' Set/unset reference peaks
+    #' 
+    #' Identify peaks as reference peaks (or remove their status as a reference peak).
+    #' This is a specialized call for \code{set_peak_by_rt}
+    #' 
+    #' @param rt (can be a vector)
+    #' @param set - wether to set it to be or not be a reference peak
+    #' @param reevalute - whether to revaluate the peak table right away
+    set_ref_peaks = function(rts, set = TRUE, reevaluate = TRUE) {
+      set_peak_by_rt(rts, setNames(list(set), peakTableKeys["ref_peak"]))
+      if (reevaluate)
+        evaluate_peak_table()
+    },
+    
+    #' Identify peak(s)
+    #' 
+    #' Identify peaks by mapping compound names to retention times
+    #' 
+    #' @param rts - retention times
+    #' @param compounds - compound names
+    identify_peaks = function(rts, compounds) {
+      if (length(rts) != length(compounds))
+        stop("not the same number of compounds and retention times supplied")
+      map <- data.frame(rts, compounds, stringsAsFactors = F)
+      names(map) <- c(peakTableKeys["rt"], peakTableKeys["name"])
+      map_peaks(map)
+    },
+    
+    #' Map peak(s)
+    #' 
+    #' Add information to peaks by mapping properties from a data frame
+    #' that contains at least the defined \code{peakTableKeys['peak_nr']} or 
+    #' \code{peakTableKeys['rt']} as a column. Additional columns (other than peak
+    #' nr and retention time) are mapped
+    #' to the relevant peaks if they correspond to existing columns, otherwise
+    #' they are disregarded with a warning.
+    #' 
+    #' @note make sure to have the data.frame that is passed in with
+    #' stringsAsFactors = F
+    #' 
+    #' @param map - the map of properties
+    map_peaks = function(map) {
+      if (is.null(get_peak_table())) 
+        stop("can't map peaks without a peak table")
+      
+      if (peakTableKeys['peak_nr'] %in% names(map)) {
+        # found peak nrs
+        nrs <- as.list(map[[peakTableKeys['peak_nr']]])
+      } else if (peakTableKeys['rt'] %in% names(map)) {
+        nrs <- sapply(map[[peakTableKeys['rt']]], function(rt) list(get_peak_nr_by_rt(rt))) 
+      } else {
+        stop ("neither '", peakTableKeys['peak_nr'], "' or '", peakTableKeys['rt'], "' defined in the map. ",
+              "not clear what to identify peaks by")
+      }
+      
+      columns <- names(map)[!names(map) %in% c(peakTableKeys['peak_nr'], peakTableKeys['rt'])]
+      existing <- intersect(columns, names(peakTable))
+      ignored <- setdiff(columns, names(peakTable))
+      if (length(ignored > 0)) 
+        warning("ignoring columns in the map not found in the peak table: ", paste(ignored, collapse = ", "))
+      
+      # go mapping
+      if (length(existing) > 0) {
+        for (i in 1:nrow(map)) {
+          if (length(nrs[[i]]) == 0) 
+            warning("no peak found at retention time ", map[i, peakTableKeys['rt']])
+          else if (length(nrs[[i]]) > 1) 
+            warning("more than one peak found at retention time ", map[i, peakTableKeys['rt']])
+          set_peak(nrs[[i]], as.list(map[i, existing, drop = F]))
+        }
+      }
+    },
+    
+    # COMPUTATION ================
+    
+    #' Evaluate data in peak table
+    evaluate_peak_table = function() {
+      warning("peak table evaluation not implemented for this class")
+    },
+   
+    # PLOTTING ===================
+    
+    #' Plot the data points in the peak table
+    #' @param y = expression which data to plot (will be evaluated in context of the data frame)
+    #' @param ylab = y axis label
+    #' @param title = title of the plot
+    #' @param data = peak table data (by default the whole peak table)
+    plot_peak_table = function(y = NULL, ylab = "", title = "", data = get_peak_table()) {
+      compounds <- sapply(data[[peakTableKeys['name']]], 
+                          function(i) if (nchar(i) > 0 && i != " - ") paste(i, "\n") else "")
+      data$.labels = paste0(compounds, "RT: ", data[[peakTableKeys['rt']]], " (#", data[[peakTableKeys['peak_nr']]], ")")
+      data$.x <- 1:nrow(data)
+      
+      # aesthetics:
+      mapping <- structure(ggplot2:::rename_aes(list(x = quote(.x), y = substitute(y))), class = "uneval")
+      
+      # plot
+      ggplot2:::ggplot(data, mapping) + 
+        geom_point(size=3, shape=21, fill="gray", color="black") + 
+        scale_x_continuous(breaks=data$.x, labels=data$.labels) +
+        labs(title = title, y = ylab, x = "") + theme_bw() + 
+        theme(legend.position="bottom", axis.text.x = element_text(angle = 60, hjust = 1)) 
+    },
+    
+    #' Make a ggplot of the references in the peak table
+    plot_refs = function(y, ylab = "", title = "references") {
+      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "ref")))
+    },
+    
+    #' Make a ggplot of the data peaks in the peak table
+    plot_data = function(y, ylab = "", title = "data peaks") {
+      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "data")))
     },
     
     #' Plot the data (both masses and ratios) - much faster than ggplot but not as versatile
@@ -218,6 +433,7 @@ IrmsContinousFlowData <- setRefClass(
       sapply(masses, function(mass)
           lines(data$time.plot, data[[paste0(mass, ".offset")]], 
                 col = plotOptions$masses[[mass]]$color))
+      invisible(NULL)
     },
     
     #' Plot the ratios (this if much faster than ggplot but not as versatile)
@@ -254,6 +470,7 @@ IrmsContinousFlowData <- setRefClass(
       sapply(ratios, function(ratio)
         lines(data$time.plot, data[[ratio]], 
               col = plotOptions$ratio[[ratio]]$color))
+      invisible(NULL)
     },
     
     #' ggplot the data
@@ -288,12 +505,18 @@ IrmsContinousFlowData <- setRefClass(
       traces <- c(lapply(plotOptions$ratios[ratios], function(i) i$label),
                   lapply(plotOptions$masses[masses], function(i) i$label))
       data$variableF <- factor(data$variable, levels = names(traces), labels = traces)
-      
+            
       # plot
       p <- ggplot2:::ggplot(data, aes_string(x = time, y = "signal.offset", colour = "variableF")) +
         geom_line() + theme_bw() +
         scale_x_continuous(expand = c(0,0)) + 
         labs(x = paste0(plotOptions$labels$x, " [", tunits, "]"), y = "", colour = "Trace")
+      
+      # refrences (add to normal plot and introduce as plotOption)
+      if (!is.null(refs <- get_peak_table(type = "ref")) && nrow(refs) > 0) {
+        label.df <- data.frame(x = refs[[peakTableKeys['rt']]], y = 0, label = "*", panel = plotOptions$labels$ymasses)
+        p <- p + geom_text(data = label.df, aes(x, y, label = label, colour = NULL), show_guide = F)
+      }
       
       if (is.null(masses))
         return (p + labs(y = plotOptions$labels$yratios))
@@ -301,7 +524,61 @@ IrmsContinousFlowData <- setRefClass(
         return (p + labs(y = plotOptions$labels$ymasses))
       else
         return (p + facet_grid(panel~., scales="free")) # panels
+    },
+  
+    # DATA EXPORT ==============
+    #' summarize data to pdf
+    #' @param file the file name where to save, by default saves where the file was original from
+    summarize = function(file = default_filename(), 
+                         width = 16, height = 12, ...) {
+      
+      default_filename <- function() {
+        file.path(.self$filepath, paste0("summary_", .self$filename, ".pdf"))
+      }
+      
+      message("Creating summary for ", basename(file), " ...")
+      
+      # saving to pdf
+      pdf(file, width=width, height=height)
+      
+      # plots (data, referenes, peak table)
+      grid.newpage()
+      pushViewport(viewport(layout = grid.layout(2, 2)))
+      print(ggplot() + 
+              labs(title = paste0("Isodat binary read of ", filename, " (analyzed on ", creation_date, ")")), 
+            vp = viewport(layout.pos.row = 1, layout.pos.col = 1:2))
+      print(plot_refs(), vp = viewport(layout.pos.row = 2, layout.pos.col = 1))
+      print(plot_data(), vp = viewport(layout.pos.row = 2, layout.pos.col = 2))
+      
+      # data table (split in two)
+      cols_per_row <- ceiling((ncol(peakTable) + 4)/2)
+      g1 <- tableGrob(
+        get_peak_table()[1:cols_per_row], 
+        show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
+        gpar.coltext = gpar(fontsize=12, fontface="bold"), 
+        gpar.colfill = gpar(fill=NA,col=NA), 
+        gpar.rowfill = gpar(fill=NA,col=NA), h.even.alpha = 0)
+      g2 <- tableGrob(
+        cbind(get_peak_table()[peakTableKeys[c("peak_nr", "ref_peak", "rt", "name")]],
+              get_peak_table()[(1+cols_per_row):ncol(peakTable)]), 
+        show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
+        gpar.coltext = gpar(fontsize=12, fontface="bold"), 
+        gpar.colfill = gpar(fill=NA,col=NA), 
+        gpar.rowfill = gpar(fill=NA,col=NA), h.even.alpha = 0)
+      
+      # combine the whole ting
+      gall <- arrangeGrob(g1, g2, ncol=1,
+                main=paste0("\nIsodat binary read of ", filename, " (analyzed on ", creation_date, ")",
+                            ", H3 factor: ", round(data$H3factor, digits=4),
+                            "\nGC: ", data$GCprogram, 
+                            " // AS: ", data$ASprogram, 
+                            " // Method: ", data$MSprogram))
+      
+      print(gall)
+      
+      dev.off()
+      message("Summary saved to ", file)
     }
     
-    )
+  ),
 )

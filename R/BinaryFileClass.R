@@ -63,6 +63,7 @@ BinaryFile <- setRefClass(
   fields = list (
       filepath = 'character',
       filename = 'character',
+      creation_date = 'POSIXct', # file creation date
       rawdata = 'raw',
       keys = 'data.frame',
       data = 'list',
@@ -203,6 +204,26 @@ BinaryFile <- setRefClass(
       path <- file.path(filepath, filename)
       if (is.na(size <- file.info(path)$size))
         stop("file does not exist: ", path)
+      
+      creation_date <<- switch(
+        .Platform$OS.type, #  Sys.info()[['sysname']] will provide Windows, Darwin and Linux instead
+        windows = {
+          # Windows
+          file.info(path)$ctime
+        },
+        unix = {
+          # Linux and OS X, try it with stat, otherwise just throw a warning and use mdate
+          bdate <- NULL
+          tryCatch({
+            cmd <- paste0('stat -f "%DB" "', path, '"') # use BSD stat command
+            ctime_sec <- as.integer(system(cmd, intern=T)) # retrieve birth date in seconds from start of epoch (%DB)
+            bdate <- as.POSIXct(ctime_sec, origin = "1970-01-01", tz = "") # convert to POSIXct
+          }, error = function(e) warning(e)) # throw errors as warnings
+          if (is.null(bdate))
+            bdate <- file.info(path)$mtime #FIXME: currently returning last modification time instead if there's any trouble
+          bdate
+        }, 
+        stop("don't know how to get file birth date on platform ", .Platform$OS.type))
       
       # read
       con <- file(path, "rb")

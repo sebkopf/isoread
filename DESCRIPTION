@@ -10,9 +10,11 @@ Description: R interface for accessing isotope ratio mass spectrometry data
 License: GPL-2
 LazyLoad: yes
 Depends:
+    isotopia,
     plyr,
     reshape2,
-    ggplot2
+    ggplot2,
+    gridExtra
 Suggests:
     testthat
 Roxygen: list(wrap = FALSE)
@@ -25,3 +27,5 @@ Collate:
     'IsodatHydrogenContinuousFlowFileClass.R'
     'export.R'
     'isoread.R'
+    'utilities.R'
+    'zzz.R'

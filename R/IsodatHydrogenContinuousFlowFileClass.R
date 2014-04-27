@@ -8,7 +8,9 @@ NULL
 IsodatHydrogenContinuousFlowFile <- setRefClass(
   "IsodatHydrogenContinuousFlowFile",
   contains = c("IsodatFile", "IrmsContinuousFlowData"),
-  fields = list (),
+  fields = list (
+    ref_deviation_max = "Delta" # maximum of reference deviations (IMPLEMENT ME as max lines on the ref plot + warnings if outside)
+    ),
   methods = list(
     #' initialize
     initialize = function(...) {
@@ -31,15 +33,27 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       
       # peak table definition
       peakTableColumns <<- data.frame(
-        data = c('Filename', 'Peak Nr.', 'Ref. Peak', 'Status', 'Component', 'Master Peak', 'Ref. Name', 'Start\n[s]', 'Rt\n[s]', 'End\n[s]', 'Width\n[s]', 'Ampl. 2\n[mV]', 'Ampl. 3\n[mV]', 'BGD 2\n[mV]', 'BGD 3\n[mV]', 'Area All\n[Vs]', 'Area 2\n[Vs]', 'Area 3\n[Vs]', 'rArea All\n[mVs]', 'rArea 2\n[mVs]', 'rArea 3\n[mVs]', 'R 3H2/2H2\n', 'rR 3H2/2H2\n', 'rd 3H2/2H2\n[per mil]\nvs. methane ref', 'd 3H2/2H2\n[per mil]\nvs. VSMOW', 'DeltaDelta 3H2/2H2\n[0 ]', 'R 2H/1H', 'd 2H/1H\n[per mil]\nvs. VSMOW', 'AT% 2H/1H\n[%]'),
-        type = c("character", "integer", "logical", "character", "character", "character", "character", rep("numeric", 22)),
+        data = c('Filename', 'Peak Nr.', 'Ref. Peak', 'Status', 'Component', 'Formula', 'Master Peak', 'Ref. Name', 
+                 'Start\n[s]', 'Rt\n[s]', 'End\n[s]', 'Width\n[s]', 'Ampl. 2\n[mV]', 'Ampl. 3\n[mV]', 'BGD 2\n[mV]', 'BGD 3\n[mV]', 
+                 'Area All\n[Vs]', 'Area 2\n[Vs]', 'Area 3\n[Vs]', 'rArea All\n[mVs]', 'rArea 2\n[mVs]', 'rArea 3\n[mVs]', 
+                 'R 3H2/2H2\n', 'rR 3H2/2H2\n', 'rd 3H2/2H2\n[per mil]\nvs. methane ref', 'd 3H2/2H2\n[per mil]\nvs. VSMOW', 
+                 'DeltaDelta 3H2/2H2\n[0 ]', 'R 2H/1H', 'd 2H/1H\n[per mil]\nvs. VSMOW', 'AT% 2H/1H\n[%]', 'Rps 3H2/2H2'),
+        type = c("character", "integer", "logical", "character", "character", "character", "character", "character", 
+                 rep("numeric", 14),
+                 "Ratio", "Ratio", "Delta", "Delta", "numeric", "Ratio", "Delta", "numeric", 'numeric'),
         show = TRUE, stringsAsFactors = FALSE)
       peakTableColumns <<- mutate(
         peakTableColumns,
         column = sub('^([^\n]+).*', '\\1', data), # pull out column names from the data names
         units = sub('\n', ' ', sub('^[^\n]+(\n)?(.*)$', '\\2', data))) # pull out units from the data names
-        
+      
+      # key peaks
+      peakTableKeys <<- c(peak_nr = "Peak Nr.", ref_peak = "Ref. Peak", 
+                          rt = "Rt", rt_start = "Start", rt_end = "End",
+                          name = "Component")
     },
+    
+    # READ DATA =========================
     
     #' expand parent load function with key_cleanup
     load = function(...) {
@@ -114,28 +128,85 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
           entries<-c(entries, paste(readBin(rawtable[spos:epos], "character", n=(epos-spos)/2, size=2), collapse=""))
           spos<-i+100
         }
-        table<-matrix(entries[-length(entries)], byrow=TRUE, ncol=27) # FIXME not sure this is always true that it's 27 columns but appears to be the case
-        df<-data.frame(table[2:nrow(table),], stringsAsFactors=FALSE)
-        names(df)<-table[1,]
+        entries <- entries[-length(entries)] # last entry is garbage
         
-        # process peak nr
-        if ( !('Peak Nr.' %in% names(df) ))
-          stop("'Peak Nr.' column not found in peak table. Only available columns are ", paste0(names(df), collapse = ", "))
         
-        peakNrPattern <- "^([0-9]+)([\\*\\+]?)$"
-        df <- mutate(
-          df,
-          `Ref. Peak` = sub(peakNrPattern, '\\2', `Peak Nr.`) == "*", # whether it is a reference peak
-          Status = sapply(sub(peakNrPattern, '\\2', `Peak Nr.`), # whether peak was added
-                          function(x) { if (x=="+") "Added" else "Auto" }),
-          `Peak Nr.` = as.integer(sub(peakNrPattern, '\\1', `Peak Nr.`))) # peak number as integer
-        
-        # store peak table data
-        peakTable <<- df
+        # sometimes there is an extra column (rps), sometimes not
+        if (! (rps_column <- length(entries) %% 28 == 0) && # rps column
+            ! (length(entries) %% 27 == 0)) { # no rps column
+          # neither 27 nor 28 columns! not sure what's going on
+          isoread_debug <<- entries
+          warning("it appears the peak table has neither exactly 27 nor 28 columns, not sure how to deal with this scenario. ",
+                  "a dump of all entries recovered from the peak table is stored in the global variable 'isoread_debug'")
+        } else {
+          table<-matrix(entries, byrow=TRUE, ncol=if(rps_column) 28 else 27) # FIXME not sure this is always true that it's 27 columns but appears to be the case
+          df<-data.frame(table[2:nrow(table),], stringsAsFactors=FALSE)
+          names(df)<-table[1,]
+          
+          # add rps column if missing
+          if (!rps_column)
+            df$`Rps 3H2/2H2` <- ""
+          
+          # process peak nr
+          if ( !('Peak Nr.' %in% names(df) ))
+            stop("'Peak Nr.' column not found in peak table. Only available columns are ", paste0(names(df), collapse = ", "))
+          
+          peakNrPattern <- "^([0-9]+)([\\*\\+]?)$"
+          df <- mutate(
+            df,
+            `Ref. Peak` = sub(peakNrPattern, '\\2', `Peak Nr.`) == "*", # whether it is a reference peak
+            Status = sapply(sub(peakNrPattern, '\\2', `Peak Nr.`), # whether peak was added
+                            function(x) { if (x=="+") "Added" else "Auto" }),
+            Formula = "",
+            `Peak Nr.` = as.integer(sub(peakNrPattern, '\\1', `Peak Nr.`))) # peak number as integer
+          
+          # store peak table data
+          peakTable <<- df
+        }
       } 
       
     },
 
+    # PEAK IDENTIIFICATON =============
+    
+    
+    
+    # COMPUTATION ================
+    
+    #' Evaluate data in peak table
+    #' 
+    #' This function uses the standards defined in the peak table to (re)evaluate the isotopic
+    #' composition of the other peaks in this reference frame.
+    #' 
+    evaluate_peak_table = function() {
+      # IMPLEMENT ME
+    },
+    
+    # VISUALIZATION / PLOTTING ==========================
+    
+    #' Make a ggplot of the references
+    #'
+    #' By default, this makes a plot that generates an overview
+    #' of how close the reference peaks are to
+    #' each other.
+    plot_refs = function(
+      y = as.delta(`rR 3H2/2H2`, mean(`rR 3H2/2H2`)), 
+      ylab = "dD [permil] vs mean ratio", 
+      title = "Variation in reference peaks"){
+      # FIXME not sure how to call super from here to avoid this code replication
+      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "ref")))
+    },
+    
+    #' Make a ggplot of the data
+    #'
+    #' By default, this makes a plot of the delta values.
+    plot_data = function(
+      y = `d 2H/1H`, 
+      ylab = "dD [permil] vs VSMOW", 
+      title = "Data peaks"){
+      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "data")))
+    },
+    
     #' custom show function to display roughly what data we've got going
     show = function() {
       cat("\nShowing summary of", class(.self), "\n")

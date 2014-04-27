@@ -7,6 +7,12 @@
 \description{
 IrmsData reference class
 }
+\section{Methods}{
+
+\describe{
+\item{\code{export(Class)}}{Returns the result of coercing the object to
+Class.  No effect on the object itself.}
+}}
 \note{
 not sure yet what's best to abstract into this one
 }

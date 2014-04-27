@@ -1,7 +1,9 @@
 context("Isoread")
 
 test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
-  expect_that(test <- isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), readChromData = TRUE, type = c("H_CSIA")), is_a("IsodatFile"))
+  
+  expect_error(isoread("test", type = "C_CSIA"), "not a currently supported file type")
+  expect_that(test <- isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), readChromData = TRUE, type = "H_CSIA"), is_a("IsodatFile"))
 
   # key tests
   expect_that(nrow(test$keys), equals(3127)) # number of keys found in the test file (after IsodatFile style cleanup!)
@@ -27,6 +29,37 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   expect_true(nrow(test$peakTable) > 0) # peak table loaded
   expect_true(length(setdiff(test$peakTableColumns$column, names(test$peakTable))) == 0) # all columns defined
   expect_true(all(sapply(test$peakTable, class, simplify=T) == test$peakTableColumns$type)) # all correct data type
+  
+  # refrence peak tests and changes
+  expect_equal(nrow(test$get_peak_table()), 19)
+  expect_equal(nrow(test$get_peak_table(type = "ref")), 5)
+  expect_equal(nrow(test$get_peak_table(type = "data")), 14)
+  expect_that(test$plot_refs(), is_a("ggplot"))
+  
+  expect_equal({ # add extra reference peak
+    test$set_ref_peaks(612, set = TRUE)
+    test$get_peak_table(type = "ref")$`Peak Nr.`
+  }, c(3, 4, 7, 10, 13, 16))
+  
+  expect_equal({ # remove reference peaks
+    test$set_ref_peaks(c(670, 1055), set = FALSE)
+    test$get_peak_table(type = "ref")$`Peak Nr.`
+  }, c(3, 7, 13, 16))
+  
+  # peak finding, identification and mapping
+  expect_equal(test$get_peak_nr_by_rt(c(320, 860)), c(2, 7))
+  expect_equal(test$get_peak_by_rt(286)$Width, 9.6)
+  expect_error(test$map_peaks(data.frame(a=1:5)), "neither 'Peak Nr.' or 'Rt' defined")
+  expect_warning(test$map_peaks(data.frame(Rt = 1, a=1:5)), "ignoring columns in the map not found in the peak table")
+  expect_warning(test$identify_peaks(c(500, 880), c("a", "b")), "no peak found at retention time")
+  expect_equal({
+    test$map_peaks(data.frame(Rt = c(1000, 1610), Component = c("test1", "test2"), Formula = c("C2O", "H25"), stringsAsFactors=F))
+    test$get_peak_by_rt(c(1000, 1610))$Component
+  }, c("test1", "test2"))
+  expect_equal(test$get_peak_by_rt(c(1000, 1610))$Formula, c("C2O", "H25"))
+  
+  # data plotting
+  expect_that(test$plot_data(), is_a("ggplot"))
 })
 
 test_that("Testing isoread whole folder read", {

@@ -49,6 +49,16 @@ IrmsData <- setRefClass(
     #' ggplot data
     ggplot = function(...) {
       
+    },
+    
+    #' summarize data into a pdf
+    summarize = function (file, ....) {
+      
+    },
+    
+    #' export data to csv
+    export = function(file, ...) {
+      
     }
     )
 )
