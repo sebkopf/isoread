@@ -1,10 +1,11 @@
+#' Wrapper for parsing binary data.
+#' 
 #' Convenience wrapper for parsing binary data.
 #' For more details on reading binary data, check ?readBin
 #' 
 #' @param type data type see \code{\link{map_binary_data_type}} for details
 #' @param length how many instances of this object (for characters and raw this means length of string, all others a vector)
 #' @return read data
-#' @export
 parse_binary_data = function(data, type, length = 1) {
   # map data type
   mapped_type <- map_binary_data_type(type)
@@ -22,6 +23,8 @@ parse_binary_data = function(data, type, length = 1) {
   return(read)
 }
 
+#' Binary data type mapping
+#' 
 #' Maps binary C data types to proper R data types and byte lengths
 #' @param type
 #' \itemize{
@@ -36,7 +39,6 @@ parse_binary_data = function(data, type, length = 1) {
 #'    \item{'double'}{ = numeric with 8 bytes (64bit)}
 #' }
 #' @note implemented signed int and complex if needed
-#' @export
 map_binary_data_type <- function(
   type = c('binary', 'UTF8', 'UTF16', 'UTF32', 'short', 
            'long', 'long long', 'float', 'double')) {
@@ -54,10 +56,14 @@ map_binary_data_type <- function(
     stop("not a valid data type: '", type, "'"))
 }
 
-
 #' Binary File reference class
-#' @rdname BinaryFile
+#' @name BinaryFile
 #' @exportClass BinaryFile
+#' @field filepath stores the path to the binart file
+#' @field filename stores the filename
+#' @field creation_date stores the date the file was created (if it could be retrieved,
+#' which is not always the case when running on linux but no problem on OS X and windows)
+#' @field rawdata this is the binary i
 BinaryFile <- setRefClass(
   "BinaryFile",
   fields = list (
@@ -79,19 +85,32 @@ BinaryFile <- setRefClass(
     },
     
     #' load the data from the file and generate key lookup
-    #' @exportMethod
     load = function(...) {
+      ""
       read_file()
       find_keys()
     },
     
     #' process  the raw data to generate to fill the data list
     #' @exportMethod
+    #' @name process
+    #' @usage blabdbulat
+    #' @rdname BinaryFile
+    #' @describeIn BinaryFile
     #' @note override
     process = function(...) {
       if (length(rawdata) == 0)
         stop("no data available, make sure load() was called and the binary file ",
              "is properly loaded (for example, have a look at the keys field)")
+    },
+    
+    #' cleanup the object
+    cleanup = function(clean_raw = TRUE, clean_keys = TRUE, ...) {
+      "clean up the object by removing the raw data and keys from memory"
+      if (clean_raw)
+        rawdata <<- raw()
+      if (clean_keys)
+        keys <<- data.frame()
     },
     
     #' parse binary data at current position in the data stream

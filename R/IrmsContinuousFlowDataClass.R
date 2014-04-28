@@ -45,7 +45,7 @@ IrmsContinousFlowData <- setRefClass(
       # name = column that holds the compound names
       peakTableKeys <<- c(peak_nr = "", ref_peak = "", rt = "", rt_start = "", rt_end = "", name = "")
     },
-
+    
     # DATA CHECKS ============================
     
     #' check the data consistency

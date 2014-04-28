@@ -45,6 +45,7 @@ isoread <- function(files, type, ...) {
     obj$load(...)
     obj$process(...)
     obj$check_data(...)
+    obj$cleanup(clean_chrom_data = FALSE, ...)
     obj
   })
   

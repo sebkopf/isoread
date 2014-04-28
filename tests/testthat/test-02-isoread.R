@@ -3,7 +3,7 @@ context("Isoread")
 test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   
   expect_error(isoread("test", type = "C_CSIA"), "not a currently supported file type")
-  expect_that(test <- isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), readChromData = TRUE, type = "H_CSIA"), is_a("IsodatFile"))
+  expect_that(test <- isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), readChromData = TRUE, clean_keys = FALSE, type = "H_CSIA"), is_a("IsodatFile"))
 
   # key tests
   expect_that(nrow(test$keys), equals(3127)) # number of keys found in the test file (after IsodatFile style cleanup!)
@@ -14,6 +14,11 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   
   expect_error(test$get_mass_data(masses = "mass45"))
   expect_error(test$get_ratio_data(masses = "ratio6o2"))
+  
+  # cleanup test
+  expect_equal(test$rawdata, raw())
+  test$cleanup(clean_chrom_data = FALSE, clean_keys = TRUE)
+  expect_equal(test$keys, data.frame())
   
   # plotting test (indirect just by checking if it works)
   expect_true({
@@ -73,6 +78,10 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   
   # summarizing
   expect_message(test$summarize(file = tempfile()), "Summary saved")
+  
+  # chrom data cleanup
+  test$cleanup(clean_chrom_data = TRUE)
+  expect_equal(test$chromData, data.frame())
 })
 
 test_that("Testing isoread whole folder read", {

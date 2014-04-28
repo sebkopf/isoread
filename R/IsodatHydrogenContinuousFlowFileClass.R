@@ -170,9 +170,12 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       
     },
 
-    # PEAK IDENTIIFICATON =============
-    
-    
+    cleanup = function(clean_chrom_data = FALSE, ...) {
+      # FIXME, this should ideally go into IrmsContinuousFlowDataClass but the method comes from BinaryFile$cleanup ...
+      callSuper(...)
+      if (clean_chrom_data)
+        chromData <<- data.frame()
+    },
     
     # COMPUTATION ================
     
@@ -181,8 +184,8 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
     #' This function uses the standards defined in the peak table to (re)evaluate the isotopic
     #' composition of the other peaks in this reference frame.
     #' 
-    evaluate_peak_table = function() {
-      # IMPLEMENT ME
+    reevaluate_peak_table = function() {
+      stop("not implemnted yet")
     },
     
     # VISUALIZATION / PLOTTING ==========================
