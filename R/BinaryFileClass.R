@@ -202,7 +202,7 @@ BinaryFile <- setRefClass(
     #' --> might have to acually read directly from the conection instead of the raw data buffer!
     read_file = function(){
       path <- file.path(filepath, filename)
-      if (is.na(size <- file.info(path)$size))
+      if (is.na(size <- file.info(path)$size) || file.info(path)$isdir == TRUE)
         stop("file does not exist: ", path)
       
       creation_date <<- switch(

@@ -7,10 +7,4 @@
 \description{
 IrmsContinuousFlowData reference class
 }
-\section{Methods}{
-
-\describe{
-\item{\code{export(Class)}}{Returns the result of coercing the object to
-Class.  No effect on the object itself.}
-}}
 

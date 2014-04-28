@@ -38,27 +38,26 @@ IrmsData <- setRefClass(
     
     #' check internal consistency of data
     check_data = function(...) {
-      
     },
     
     #' Plot data
     plot = function(...) {
-      
+      stop("not implemented for this class")
     },
     
     #' ggplot data
     ggplot = function(...) {
-      
+      stop("not implemented for this class")
     },
     
     #' summarize data into a pdf
     summarize = function (file, ....) {
-      
+      stop("not implemented for this class")
     },
     
     #' export data to csv
-    export = function(file, ...) {
-      
+    export_data = function(file, ...) {
+      stop("not implemented for this class")
     }
     )
 )

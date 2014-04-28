@@ -103,8 +103,9 @@ IrmsContinousFlowData <- setRefClass(
         if (any(types <- (sapply(peakTable, class, simplify=T) != peakTableColumns$type))) {
           ptc_indices <- which(types) # indices of the columns to convert
           if (warn) {
-            info <- paste0(peakTableColumns$column[ptc_indices], " (to ", peakTableColumns$type[ptc_indices], ")")
-            message("Converting data types of peak table columns: ", paste0(info, collapse = ", "))
+            #FIXME: do we need this message? got a bit too annoying
+            #info <- paste0(peakTableColumns$column[ptc_indices], " (to ", peakTableColumns$type[ptc_indices], ")")
+            #message("Converting data types of peak table columns: ", paste0(info, collapse = ", "))
           }
             
           for (i in ptc_indices) {
@@ -536,7 +537,7 @@ IrmsContinousFlowData <- setRefClass(
         file.path(.self$filepath, paste0("summary_", .self$filename, ".pdf"))
       }
       
-      message("Creating summary for ", basename(file), " ...")
+      message("Creating summary for ", .self$filename, " ...")
       
       # saving to pdf
       pdf(file, width=width, height=height)
@@ -578,6 +579,25 @@ IrmsContinousFlowData <- setRefClass(
       
       dev.off()
       message("Summary saved to ", file)
+    },
+    
+    #' export data (by default to csv)
+    export_data = function(file = default_filename(), type = c("table", "chrom"), extension = "csv", sep = ",", headers = TRUE, ...) {
+      # what to export
+      if (missing(type)) type <- "table"
+      type <- match.arg(type)
+      
+      # default filename
+      default_filename <- function() {
+        file.path(.self$filepath, paste0("export_", .self$filename, ".", extension))
+      }
+      
+      message("Creating ", type, " export for ", .self$filename, " ...")
+      if (type == "table")
+        write.table(get_peak_table(), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      else if (type == "chrom")
+        write.table(chromData, file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      message(type, " data exported to ", file)
     }
     
   ),

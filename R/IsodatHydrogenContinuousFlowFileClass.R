@@ -120,7 +120,10 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       rawtable <- rawdata[subset(keys, value=="CPkDataListBox")$byteEnd:subset(keys, value=="CGCPeakList")$byteStart]
       arials <- grepRaw("([Arial][^\u0020-\u007e]){5}", rawtable, all=TRUE)
       #FIXME: newer versions of isodat (2.5 and 3.1 don't have this business, just 18 bytes between each label!)
-      if (length(arials) > 5) {
+      if (length(arials) < 5) {
+        warning("peak table entries not found, this could be because the file might be created with a newer version (>2) of isodat. ",
+                "files from isodat 2.5 and 3.1 are known to have this problem but are currently not yet supported")
+      } else {
         entries<-NULL
         spos <- 9 + (regexpr("14000000fffeff08", paste(readBin(rawtable[1:(arials[1]-48)], "raw", n=(arials[1]-48)), collapse=""), fixed=TRUE)-1)/2
         for (i in arials) {
@@ -135,7 +138,7 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
         if (! (rps_column <- length(entries) %% 28 == 0) && # rps column
             ! (length(entries) %% 27 == 0)) { # no rps column
           # neither 27 nor 28 columns! not sure what's going on
-          isoread_debug <<- entries
+          assign("isoread_debug", entries, env = globalenv())
           warning("it appears the peak table has neither exactly 27 nor 28 columns, not sure how to deal with this scenario. ",
                   "a dump of all entries recovered from the peak table is stored in the global variable 'isoread_debug'")
         } else {

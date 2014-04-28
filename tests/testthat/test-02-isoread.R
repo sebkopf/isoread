@@ -30,6 +30,16 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   expect_true(length(setdiff(test$peakTableColumns$column, names(test$peakTable))) == 0) # all columns defined
   expect_true(all(sapply(test$peakTable, class, simplify=T) == test$peakTableColumns$type)) # all correct data type
   
+  # newer versions of isodat
+  expect_warning(isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.5.cf", package="isoread"), type = "H_CSIA"), "files from isodat 2.5 and 3.1 .* are currently not yet supported")
+  expect_warning(isoread(system.file("extdata", "6520__F8-5_5uL_isodat3.1.cf", package="isoread"), type = "H_CSIA"), "files from isodat 2.5 and 3.1 .* are currently not yet supported")
+  
+  # different resaved versions of the same file
+  expect_identical(
+    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), type = "H_CSIA")$get_peak_table(),
+    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2_resaved.cf", package="isoread"), type = "H_CSIA")$get_peak_table()
+    )
+  
   # refrence peak tests and changes
   expect_equal(nrow(test$get_peak_table()), 19)
   expect_equal(nrow(test$get_peak_table(type = "ref")), 5)
@@ -60,6 +70,9 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   
   # data plotting
   expect_that(test$plot_data(), is_a("ggplot"))
+  
+  # summarizing
+  expect_message(test$summarize(file = tempfile()), "Summary saved")
 })
 
 test_that("Testing isoread whole folder read", {

@@ -7,12 +7,6 @@
 \description{
 IrmsDualInletData reference class
 }
-\section{Methods}{
-
-\describe{
-\item{\code{export(Class)}}{Returns the result of coercing the object to
-Class.  No effect on the object itself.}
-}}
 \note{
 not sure yet what should go in here
 }
