@@ -58,7 +58,7 @@
 			CodeGeneration
 		</plugin>
 </profile>
-<XMI xmi.version = '1.2' xmlns:UML = 'org.omg.xmi.namespace.UML' timestamp = 'Sun Apr 27 15:17:31 PDT 2014'>
+<XMI xmi.version = '1.2' xmlns:UML = 'org.omg.xmi.namespace.UML' timestamp = 'Sun Apr 27 18:07:37 PDT 2014'>
   <XMI.header>    <XMI.documentation>
       <XMI.exporter>ArgoUML (using Netbeans XMI Writer version 1.0)</XMI.exporter>
       <XMI.exporterVersion>0.34(6) revised on $Date: 2010-01-11 22:20:14 +0100 (Mon, 11 Jan 2010) $ </XMI.exporterVersion>
@@ -218,7 +218,7 @@
               </UML:BehavioralFeature.parameter>
             </UML:Operation>
             <UML:Operation xmi.id = '127-0-0-1--383aea48:144f7fdaa07:-8000:0000000000000BD0'
-              name = 'summary' visibility = 'public' isSpecification = 'false' ownerScope = 'instance'
+              name = 'summarize' visibility = 'public' isSpecification = 'false' ownerScope = 'instance'
               isQuery = 'false' concurrency = 'sequential' isRoot = 'false' isLeaf = 'false'
               isAbstract = 'false'>
               <UML:BehavioralFeature.parameter>
@@ -227,7 +227,7 @@
               </UML:BehavioralFeature.parameter>
             </UML:Operation>
             <UML:Operation xmi.id = '127-0-0-1--383aea48:144f7fdaa07:-8000:0000000000000BD2'
-              name = 'export' visibility = 'public' isSpecification = 'false' ownerScope = 'instance'
+              name = 'export_data' visibility = 'public' isSpecification = 'false' ownerScope = 'instance'
               isQuery = 'false' concurrency = 'sequential' isRoot = 'false' isLeaf = 'false'
               isAbstract = 'false'>
               <UML:BehavioralFeature.parameter>
@@ -334,24 +334,6 @@
                 <UML:Class xmi.idref = '-64--88-2-5-669c6aaa:144d7469193:-8000:0000000000000E98'/>
               </UML:StructuralFeature.type>
             </UML:Attribute>
-            <UML:Operation xmi.id = '127-0-0-1--383aea48:144f7fdaa07:-8000:0000000000000BD4'
-              name = 'export_chrom_data' visibility = 'public' isSpecification = 'false'
-              ownerScope = 'instance' isQuery = 'false' concurrency = 'sequential' isRoot = 'false'
-              isLeaf = 'false' isAbstract = 'false'>
-              <UML:BehavioralFeature.parameter>
-                <UML:Parameter xmi.id = '127-0-0-1--383aea48:144f7fdaa07:-8000:0000000000000BD5'
-                  name = 'return' isSpecification = 'false' kind = 'return'/>
-              </UML:BehavioralFeature.parameter>
-            </UML:Operation>
-            <UML:Operation xmi.id = '127-0-0-1--383aea48:144f7fdaa07:-8000:0000000000000BD9'
-              name = 'export_peak_table' visibility = 'public' isSpecification = 'false'
-              ownerScope = 'instance' isQuery = 'false' concurrency = 'sequential' isRoot = 'false'
-              isLeaf = 'false' isAbstract = 'false'>
-              <UML:BehavioralFeature.parameter>
-                <UML:Parameter xmi.id = '127-0-0-1--383aea48:144f7fdaa07:-8000:0000000000000BDA'
-                  name = 'return' isSpecification = 'false' kind = 'return'/>
-              </UML:BehavioralFeature.parameter>
-            </UML:Operation>
             <UML:Operation xmi.id = '-64--88-2-3--33f3466f:1459f99f217:-8000:0000000000000C02'
               name = 'get_peak_by_rt' visibility = 'public' isSpecification = 'false'
               ownerScope = 'instance' isQuery = 'false' concurrency = 'sequential' isRoot = 'false'
@@ -379,15 +361,6 @@
                   name = 'return' isSpecification = 'false' kind = 'return'/>
               </UML:BehavioralFeature.parameter>
             </UML:Operation>
-            <UML:Operation xmi.id = '-64--88-2-3--33f3466f:1459f99f217:-8000:0000000000000C00'
-              name = 'evaluate_peak_table' visibility = 'public' isSpecification = 'false'
-              ownerScope = 'instance' isQuery = 'false' concurrency = 'sequential' isRoot = 'false'
-              isLeaf = 'false' isAbstract = 'false'>
-              <UML:BehavioralFeature.parameter>
-                <UML:Parameter xmi.id = '-64--88-2-3--33f3466f:1459f99f217:-8000:0000000000000C01'
-                  name = 'return' isSpecification = 'false' kind = 'return'/>
-              </UML:BehavioralFeature.parameter>
-            </UML:Operation>
             <UML:Operation xmi.id = '-64--88-2-3--33f3466f:1459f99f217:-8000:0000000000000C04'
               name = 'map_peaks' visibility = 'public' isSpecification = 'false' ownerScope = 'instance'
               isQuery = 'false' concurrency = 'sequential' isRoot = 'false' isLeaf = 'false'
@@ -412,6 +385,15 @@
               isAbstract = 'false'>
               <UML:BehavioralFeature.parameter>
                 <UML:Parameter xmi.id = '-64--88-2-3--33f3466f:1459f99f217:-8000:0000000000000BFD'
+                  name = 'return' isSpecification = 'false' kind = 'return'/>
+              </UML:BehavioralFeature.parameter>
+            </UML:Operation>
+            <UML:Operation xmi.id = '-64--88-2-3--33f3466f:1459f99f217:-8000:0000000000000C00'
+              name = 'reevaluate_peak_table' visibility = 'public' isSpecification = 'false'
+              ownerScope = 'instance' isQuery = 'false' concurrency = 'sequential' isRoot = 'false'
+              isLeaf = 'false' isAbstract = 'false'>
+              <UML:BehavioralFeature.parameter>
+                <UML:Parameter xmi.id = '-64--88-2-3--33f3466f:1459f99f217:-8000:0000000000000C01'
                   name = 'return' isSpecification = 'false' kind = 'return'/>
               </UML:BehavioralFeature.parameter>
             </UML:Operation>
@@ -1078,7 +1060,7 @@
         bold="false"
         textsize="13"
         justification="Left"
-      >summary()</text>
+      >summarize()</text>
       <text name="Fig2.6.5"
         x="593"
         y="222"
@@ -1094,7 +1076,7 @@
         bold="false"
         textsize="13"
         justification="Left"
-      >export()</text>
+      >export_data()</text>
     </group>
   </group>
   <group name="Fig3"
@@ -1168,7 +1150,7 @@
       strokecolor="black"
     />
     <group name="Fig3.4"
-         description="org.argouml.uml.diagram.ui.FigAttributesCompartment[425, 305, 207, 59]"
+         description="org.argouml.uml.diagram.ui.FigAttributesCompartment[425, 305, 207, 75]"
          href="-64--88-2-5--4afd69c6:144d7436987:-8000:0000000000000869"
          fill="0"
          fillcolor="white"
@@ -1182,7 +1164,7 @@
         x="425"
         y="305"
         width="207"
-        height="59"
+        height="75"
         fill="0"
         fillcolor="white"
         stroke="0"
@@ -1239,7 +1221,7 @@
     </group>
     <rectangle name="Fig3.5"
       x="424"
-      y="363"
+      y="380"
       width="209"
       height="1"
       fill="1"
@@ -1248,7 +1230,7 @@
       strokecolor="black"
     />
     <group name="Fig3.6"
-         description="org.argouml.uml.diagram.ui.FigOperationsCompartment[425, 364, 207, 246]"
+         description="org.argouml.uml.diagram.ui.FigOperationsCompartment[425, 381, 207, 228]"
          href="-64--88-2-5--4afd69c6:144d7436987:-8000:0000000000000869"
          fill="0"
          fillcolor="white"
@@ -1260,9 +1242,9 @@
       
       <rectangle name="Fig3.6.0"
         x="425"
-        y="364"
+        y="381"
         width="207"
-        height="246"
+        height="228"
         fill="0"
         fillcolor="white"
         stroke="0"
@@ -1270,7 +1252,7 @@
       />
       <text name="Fig3.6.1"
         x="425"
-        y="364"
+        y="381"
         width="207"
         height="17"
         fill="0"
@@ -1286,7 +1268,7 @@
       >check_chrom_data()</text>
       <text name="Fig3.6.2"
         x="425"
-        y="381"
+        y="398"
         width="207"
         height="17"
         fill="0"
@@ -1302,7 +1284,7 @@
       >check_peak_table()</text>
       <text name="Fig3.6.3"
         x="425"
-        y="398"
+        y="415"
         width="207"
         height="17"
         fill="0"
@@ -1318,7 +1300,7 @@
       >get_peak_table()</text>
       <text name="Fig3.6.4"
         x="425"
-        y="415"
+        y="432"
         width="207"
         height="17"
         fill="0"
@@ -1334,7 +1316,7 @@
       >get_mass_data()</text>
       <text name="Fig3.6.5"
         x="425"
-        y="432"
+        y="449"
         width="207"
         height="17"
         fill="0"
@@ -1350,22 +1332,6 @@
       >get_ratio_data()</text>
       <text name="Fig3.6.6"
         x="425"
-        y="449"
-        width="207"
-        height="17"
-        fill="0"
-        fillcolor="white"
-        stroke="0"
-        strokecolor="black"
-        textcolor="black"
-        font="Lucida Grande"
-        italic="false"
-        bold="false"
-        textsize="13"
-        justification="Left"
-      >export_chrom_data()</text>
-      <text name="Fig3.6.7"
-        x="425"
         y="466"
         width="207"
         height="17"
@@ -1379,8 +1345,8 @@
         bold="false"
         textsize="13"
         justification="Left"
-      >export_peak_table()</text>
-      <text name="Fig3.6.8"
+      >get_peak_by_rt()</text>
+      <text name="Fig3.6.7"
         x="425"
         y="483"
         width="207"
@@ -1395,8 +1361,8 @@
         bold="false"
         textsize="13"
         justification="Left"
-      >get_peak_by_rt()</text>
-      <text name="Fig3.6.9"
+      >plot_peak_table()</text>
+      <text name="Fig3.6.8"
         x="425"
         y="500"
         width="207"
@@ -1411,8 +1377,8 @@
         bold="false"
         textsize="13"
         justification="Left"
-      >plot_peak_table()</text>
-      <text name="Fig3.6.10"
+      >plot_refs()</text>
+      <text name="Fig3.6.9"
         x="425"
         y="517"
         width="207"
@@ -1427,8 +1393,8 @@
         bold="false"
         textsize="13"
         justification="Left"
-      >plot_refs()</text>
-      <text name="Fig3.6.11"
+      >map_peaks()</text>
+      <text name="Fig3.6.10"
         x="425"
         y="534"
         width="207"
@@ -1443,8 +1409,8 @@
         bold="false"
         textsize="13"
         justification="Left"
-      >evaluate_peak_table()</text>
-      <text name="Fig3.6.12"
+      >identify_peaks()</text>
+      <text name="Fig3.6.11"
         x="425"
         y="551"
         width="207"
@@ -1459,26 +1425,10 @@
         bold="false"
         textsize="13"
         justification="Left"
-      >map_peaks()</text>
-      <text name="Fig3.6.13"
+      >set_ref_peaks()</text>
+      <text name="Fig3.6.12"
         x="425"
         y="568"
-        width="207"
-        height="17"
-        fill="0"
-        fillcolor="white"
-        stroke="0"
-        strokecolor="black"
-        textcolor="black"
-        font="Lucida Grande"
-        italic="false"
-        bold="false"
-        textsize="13"
-        justification="Left"
-      >identify_peaks()</text>
-      <text name="Fig3.6.14"
-        x="425"
-        y="585"
         width="207"
         height="23"
         fill="0"
@@ -1491,7 +1441,7 @@
         bold="false"
         textsize="13"
         justification="Left"
-      >set_ref_peaks()</text>
+      >reevaluate_peak_table()</text>
     </group>
   </group>
   <group name="Fig4"
