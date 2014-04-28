@@ -3,7 +3,15 @@ NULL
 
 #' IrmsContinuousFlowData reference class
 #' @exportClass IrmsContinuousFlowData
-#' @rdname IrmsContinuousFlowData
+#' @name IrmsContinuousFlowData
+#' @field chromData stores the chromatographic data (the actual mass and ratio data traces),
+#' @field peakTable stores the peak table (detected peaks and all their information)
+#' @field peakTableColumns stores the definition of which columns exist in the
+#' peak table and what their proper data types are
+#' @field peakTableKeys stores information about which columns correspond
+#' to key elements of the peakTable (e.g. the peak number, retention time
+#' and compound name)
+#' @seealso \link{IrmsData}, \link{IrmsDualInletData}
 IrmsContinousFlowData <- setRefClass(
   "IrmsContinuousFlowData",
   contains = "IrmsData",
@@ -14,7 +22,7 @@ IrmsContinousFlowData <- setRefClass(
     peakTableKeys = 'character' # peak table column keys of importance
     ),
   methods = list(
-    #' initialize irms data container
+    
     init_irms_data = function() {
       callSuper()
       
@@ -48,19 +56,18 @@ IrmsContinousFlowData <- setRefClass(
     
     # DATA CHECKS ============================
     
-    #' check the data consistency
-    #' calls check_chrom_data and check_peak_data
     check_data = function(...) {
+      "check the data consistency, calls \\code{check_crom_data} and \\code{check_peak_table}"
       callSuper(...)
       check_chrom_data(...)
       check_peak_table(...)
     },
     
-    #' check the consistency of the chromatographic data
-    #' by default checks for all masses and ratios defined in plot options
-    #' @param warn whether to throw warnings
+    
     check_chrom_data = function(masses = names(.self$plotOptions$masses), 
                                 ratios = names(.self$plotOptions$ratios), ..., warn = TRUE) {
+      "checks the consistency of the chromatographic data, by default checks for 
+      all masses and ratios" 
       
       if (length(missing <- setdiff(masses, names(.self$plotOptions$masses))) > 0)
         stop("Some mass traces ('", paste(missing, collapse = ", ") ,"') are not defined in plotOptions$masses.")
@@ -78,10 +85,9 @@ IrmsContinousFlowData <- setRefClass(
         warning("No chromatographic data currently loaded.")
     },
     
-    #' check the consistency of the peak table and convert to the necessary
-    #' data types
-    #' @param warn whether to warn about changed to the peak table (e.g. enforcing data types)
     check_peak_table = function(..., warn = TRUE) {
+      "checks the consistency of the peak table and converts data types if necessary" 
+      
       if (ncol(peakTable) > 0) {
         
         # check for all peakTable columns existence
@@ -133,9 +139,9 @@ IrmsContinousFlowData <- setRefClass(
     
     # DATA RETRIEVAL ==============
     
-    #' Get peak table from the data class
-    #' @param type which type of columns to get
     get_peak_table = function(type = c("ref", "data", "both")) {
+      "retrieve the peak table"
+      
       if (missing(type)) type <- "both"
       type <- match.arg(type)
       
@@ -159,6 +165,9 @@ IrmsContinousFlowData <- setRefClass(
     #' @note consider storing the extra x units in the chromData but worries about the size of this
     #' object keep me from storing extra information in chromData
     get_mass_data = function(masses = names(.self$plotOptions$masses), melt = FALSE) {
+      "get the mass trace data for specific masses, can be provided in \\code{melt = TRUE} format
+      for easy use in ggplot style plotting"
+      
       # checks
       if (nrow(chromData) == 0)
         stop("No chromatographic data available.")
@@ -191,6 +200,9 @@ IrmsContinousFlowData <- setRefClass(
     #' @param ratios which ratios to retrieve, all defined ones by default
     #' @param melt whether to melt the data frame
     get_ratio_data = function(ratios = names(.self$plotOptions$ratios), melt = FALSE) {
+      "get the ratio trace data for specific ratios, can be provided in \\code{melt = TRUE} format
+      for easy use in ggplot style plotting"
+      
       # checks
       if (nrow(chromData) == 0)
         stop("No chromatographic data available.")
@@ -213,11 +225,9 @@ IrmsContinousFlowData <- setRefClass(
     
     # PEAK IDENTIIFICATON AND UPDATE =============
   
-    #' Find peak numbers by retention time
-    #' @param rts - the retention time(s) to look for
-    #' @param select - the columns to select
-    #' @return returns a vector of found peak numbers (integer(0) if none found)
     get_peak_nr_by_rt = function(rts) {
+      "find peak numbers (i.e. ids) by retention time(s), returns a vector of found peak numbers (integer(0) if none found)"
+      
       if (is.null(get_peak_table())) 
         stop("can't search for peaks without a peak table")
       
@@ -227,11 +237,11 @@ IrmsContinousFlowData <- setRefClass(
       }))
     },
     
-    #' Get peaks in the peak table
-    #' @param peak_nr - the peak numbers to get
-    #' @param select - the columns to select
     #' @return returns the data frame of found peaks (0-row df if none found)
     get_peak = function(peak_nr, select = names(peakTable)) {
+      "retrieve information for a peak in the peak table (identified by peak_nr), can specify which columns to retrieve
+      with \\code{selec}, retrieves all columns by default"
+      
       if (is.null(get_peak_table())) 
         stop("can't search for peaks without a peak table")
       peakTable[peakTable[[peakTableKeys["peak_nr"]]] %in% peak_nr, select]
@@ -240,14 +250,16 @@ IrmsContinousFlowData <- setRefClass(
     #' Get peaks by rt
     #' @param rts 
     get_peak_by_rt = function(rts, select = names(peakTable)) {
+      "retrieve information for peak(s) in the peak table (identified by retention times)"
       peak_nrs <- get_peak_nr_by_rt(rts)
       get_peak(peak_nrs, select = select)
     },
     
-    #' Set peak(s) columns
+    #' Set peak(s) columns (this one should not be used externally)
     #' @param peak_nr - peak number(s) to update with the provided attributes
     #' @param ... - peak columns to change (only one value per attribute allowed!)
     set_peak = function(peak_nr, ...){
+      
       if (is.null(get_peak_table())) 
         stop("can't change peaks without a peak table")
       
@@ -276,10 +288,12 @@ IrmsContinousFlowData <- setRefClass(
     #' @param rt (can be a vector)
     #' @param set - wether to set it to be or not be a reference peak
     #' @param reevalute - whether to revaluate the peak table right away
-    set_ref_peaks = function(rts, set = TRUE, reevaluate = TRUE) {
+    set_ref_peaks = function(rts, set = TRUE, reevaluate = FALSE) {
+      " Identify peaks (by their retention times) as reference peaks (or remove their status as a reference peak)"
+      
       set_peak_by_rt(rts, setNames(list(set), peakTableKeys["ref_peak"]))
       if (reevaluate)
-        evaluate_peak_table()
+        reevaluate_peak_table()
     },
     
     #' Identify peak(s)
@@ -289,6 +303,7 @@ IrmsContinousFlowData <- setRefClass(
     #' @param rts - retention times
     #' @param compounds - compound names
     identify_peaks = function(rts, compounds) {
+      "Identify peaks by mapping compound names to retention times"
       if (length(rts) != length(compounds))
         stop("not the same number of compounds and retention times supplied")
       map <- data.frame(rts, compounds, stringsAsFactors = F)
@@ -310,6 +325,15 @@ IrmsContinousFlowData <- setRefClass(
     #' 
     #' @param map - the map of properties
     map_peaks = function(map) {
+      "Add information to peaks by mapping properties from a data frame
+      that contains at least the defined peak number (e.g. `Peak Nr.`) or 
+      retention time (Rt) as a column. Additional columns (other than peak
+      nr and retention time) are mapped to the relevant peaks if they correspond 
+      to existing columns, otherwise they are disregarded with a warning. 
+      
+      Note: make sure to have the data.frame that is passed in set with
+      \\code{stringsAsFactors = F} (usually the desired setting for the mapping)"
+      
       if (is.null(get_peak_table())) 
         stop("can't map peaks without a peak table")
       
@@ -344,7 +368,8 @@ IrmsContinousFlowData <- setRefClass(
     # COMPUTATION ================
     
     #' Evaluate data in peak table
-    evaluate_peak_table = function() {
+    reevaluate_peak_table = function() {
+      "reevalutes the peak table (not currently implemented)"
       warning("peak table evaluation not implemented for this class")
     },
    
@@ -356,6 +381,17 @@ IrmsContinousFlowData <- setRefClass(
     #' @param title = title of the plot
     #' @param data = peak table data (by default the whole peak table)
     plot_peak_table = function(y = NULL, ylab = "", title = "", data = get_peak_table()) {
+      "Plot the data points in the peak table
+      
+      #' @param y = expression which data to plot (will be evaluated in context of the data frame)
+      
+      #' @param ylab = y axis label
+       
+      #' @param title = title of the plot
+       
+      #' @param data = peak table data (by default the whole peak table)
+      "
+      
       compounds <- sapply(data[[peakTableKeys['name']]], 
                           function(i) if (nchar(i) > 0 && i != " - ") paste(i, "\n") else "")
       data$.labels = paste0(compounds, "RT: ", data[[peakTableKeys['rt']]], " (#", data[[peakTableKeys['peak_nr']]], ")")
@@ -374,11 +410,13 @@ IrmsContinousFlowData <- setRefClass(
     
     #' Make a ggplot of the references in the peak table
     plot_refs = function(y, ylab = "", title = "references") {
+      "plot the data of the reference peaks, see \\code{plot_peak_table} for details on syntax"
       do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "ref")))
     },
     
     #' Make a ggplot of the data peaks in the peak table
     plot_data = function(y, ylab = "", title = "data peaks") {
+      "plot the data of the actual sample peaks, see \\code{plot_peak_table} for details on syntax"
       do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "data")))
     },
     
@@ -395,6 +433,16 @@ IrmsContinousFlowData <- setRefClass(
                     masses = names(.self$plotOptions$masses),
                     ratios = names(.self$plotOptions$ratios),
                     tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]]) {
+      "Plot the data (both masses and ratios) - much faster than ggplot but not as versatile
+      
+      #' @param tlim time range, should be in the same tunits
+      
+    #' @param masses which masses to plot (all defined in plot optinos by default)
+     
+    #' @param ratios which ratios to plot (all defined in plot options by default)
+     
+    #' @param tunits time units, as defined in tunits (currently either 's' or 'min'), takes the one set in plotOptions as default      
+      "
       layout(matrix(c(1,2), byrow=TRUE, ncol=1))
       plot_ratios(tlim = tlim, ylim = ratio_ylim, ratios = ratios, tunits = tunits)
       plot_masses(tlim = tlim, ylim = mass_ylim, masses = masses, tunits = tunits)
@@ -406,6 +454,8 @@ IrmsContinousFlowData <- setRefClass(
     plot_masses = function(tlim = NULL, ylim = NULL, 
                            masses = names(.self$plotOptions$masses),
                            tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]]) {
+      "Plot the masses (this if much faster than ggplot but not as versatile)"
+      
       # get data
       time <- paste0("time.", tunits)
       data <- get_mass_data(masses = masses)
@@ -443,6 +493,8 @@ IrmsContinousFlowData <- setRefClass(
     plot_ratios = function(tlim = NULL, ylim = NULL, 
                            ratios = names(.self$plotOptions$ratios),
                            tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]]) {
+      "Plot the ratios (this if much faster than ggplot but not as versatile)"
+      
       # get data
       time <- paste0("time.", tunits)
       data <- get_ratio_data(ratios = ratios)
@@ -482,6 +534,17 @@ IrmsContinousFlowData <- setRefClass(
     ggplot = function(tlim = NULL, tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]],
                       masses = names(.self$plotOptions$masses),
                       ratios = names(.self$plotOptions$ratios)) {
+      "ggplot the data
+
+    #' @param tlim time range (in tunits units)
+    
+    #' @param tunits units (currently 's' or 'min')
+     
+    #' @param masses vector of the masses to plot (if NULL, panel excluded)
+    
+    #' @param ratios vector of the ratios to plot (if NULL, panel excluded)
+      "
+      
       # checks
       if (is.null(masses) && is.null(ratios))
         stop("error, no masses or ratios provided, need at least one set of data")
@@ -580,6 +643,7 @@ IrmsContinousFlowData <- setRefClass(
       dev.off()
       message("Summary saved to ", file)
     },
+    
     
     #' export data (by default to csv)
     export_data = function(file = default_filename(), type = c("table", "chrom"), extension = "csv", sep = ",", headers = TRUE, ...) {

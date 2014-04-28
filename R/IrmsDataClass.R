@@ -1,7 +1,7 @@
 #' IrmsData reference class
 #' 
-#' @note not sure yet what's best to abstract into this one
-#' @rdname IrmsData
+#' @name IrmsData
+#' @field plotOptions holds information about default plotting options
 IrmsData <- setRefClass(
   "IrmsData",
   fields = list (
@@ -14,17 +14,16 @@ IrmsData <- setRefClass(
       init_irms_data()
     },
     
-    #' initialize irms data class
-    #' @param plotOptions list of plot options to initialize the data container with
     init_irms_data = function() {
+      "initialize irms data container"
       plotOptions <<- list()
     },
     
-    #' Set plot options
     #' @example setSettings(a=5, b='test', ...)
     #' @example setSettings(list(a=5, b='test', ...))
-    #' @note fix the naming schizophrenia (some are lower some opper gase)
     set_plot_options = function(...) {
+      "set plot options"
+      
       # if the first argument is an unnamed list then just use this list
       if ( nargs() == 1L && is.list(..1) &&
              (is.null(names(list(...))) || (names(list(...))[[1L]] == "")) )  {
@@ -40,23 +39,24 @@ IrmsData <- setRefClass(
     check_data = function(...) {
     },
     
-    #' Plot data
     plot = function(...) {
       stop("not implemented for this class")
     },
     
     #' ggplot data
     ggplot = function(...) {
+      "generate a ggplot object for the data in this IrmsData object"
       stop("not implemented for this class")
     },
     
-    #' summarize data into a pdf
     summarize = function (file, ....) {
+      "summarize the data stored in this object and save it to file"
       stop("not implemented for this class")
     },
     
     #' export data to csv
     export_data = function(file, ...) {
+      "export the data stored in this object to file"
       stop("not implemented for this class")
     }
     )

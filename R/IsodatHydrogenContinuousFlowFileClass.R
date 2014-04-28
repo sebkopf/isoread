@@ -2,9 +2,21 @@
 #' @include IrmsContinuousFlowDataClass.R
 NULL
 
-#' Isodat file class
-#' @rdname IsodatHydrogenContinuousFlowFile
+#' H-CSIA DataClass
+#' 
+#' Objects of this class hold the isotopic data from compound specific hydrogen
+#' isotope analysis recorded in Isodat file formats (currently supported isodat
+#' version is 2.0 for chromatographic and peak table data and isodat version 2.5 and
+#' 3.0 for chromatographic data only).
+#' 
+#' This class is derived from \link{IrmsContinuousFlowData} which defines a number
+#' of useful plotting, export and data access methods. This class also derived
+#' \link{BinaryFile} which provides functionality for interacting with the
+#' underlying \link{IsodatFile}.
+#' 
+#' @name IsodatHydrogenContinuousFlowFile
 #' @exportClass IsodatHydrogenContinuousFlowFile
+#' @seealso \link{BinaryFile}, \link{IsodatFile}, \link{IrmsContinuousFlowData}, \link{IrmsData}
 IsodatHydrogenContinuousFlowFile <- setRefClass(
   "IsodatHydrogenContinuousFlowFile",
   contains = c("IsodatFile", "IrmsContinuousFlowData"),

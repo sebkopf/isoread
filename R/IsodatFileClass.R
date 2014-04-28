@@ -2,8 +2,11 @@
 NULL
 
 #' Isodat file class
-#' @note not entirely sure yet what will be abstracted into this class
-#' @rdname IsodatFile
+#' 
+#' Class representing an isodat binary file.
+#' 
+#' @name IsodatFile
+#' @seealso \link{BinaryFile}
 IsodatFile <- setRefClass(
   "IsodatFile",
   contains = "BinaryFile",

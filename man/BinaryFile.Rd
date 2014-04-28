@@ -16,6 +16,58 @@ Binary File reference class
 \item{\code{creation_date}}{stores the date the file was created (if it could be retrieved,
 which is not always the case when running on linux but no problem on OS X and windows)}
 
-\item{\code{rawdata}}{this is the binary i}
+\item{\code{rawdata}}{this is the binary raw data from the file (typically removed during cleanup
+unless clean_raw = FALSE)}
+
+\item{\code{keys}}{these are the Unicode and ASCII text fragments found in the binary file,
+they are used for navigating in the file when pulling out the relevant data (typically
+removed during cleanup unless clean_keys = FALSE)}
+
+\item{\code{data}}{a list that contains all the actual data pulled from the file}
+}}
+\section{Methods}{
+
+\describe{
+\item{\code{clean_keys(removeText = NULL, removePattern = NULL, unlessByteLength = 0,
+  unlessText = NULL)}}{clean up keys by removing randomly found strings that are clearly not proper targets}
+
+\item{\code{cleanup(clean_raw = TRUE, clean_keys = TRUE, ...)}}{clean up the object by removing the raw data and keys (and other large but only transiently important information) from memory}
+
+\item{\code{find_key(pattern, occurence = 1)}}{find a key by a regexp pattern}
+
+\item{\code{find_keys(asciiL = 10, unicodeL = 5)}}{finds all unicode and ascii strings and stores them for navigation around the file}
+
+\item{\code{initialize(file, ...)}}{initialize BinaryFile object, requires a file path}
+
+\item{\code{load(...)}}{load the data from the file and generate key lookup}
+
+\item{\code{move_to_key(key, occurence = 1)}}{moves position to the end of a specific occurence of a key (use -1 for last occurence)}
+
+\item{\code{parse(type, length = 1, id = NA, skip_first = 0)}}{parse binary data at current position in the data stream
+      advances pointer by the size of the read data 
+
+      #' @param type see \code{\link{map_binary_data_type}}
+      #' @param length see \code{\link{parse_binary_data}}
+      #' @param id if provided, will store the parsed data with this key in the \code{$data} field
+      #' @param skip_first how many bytes to skip before reading this
+      }
+
+\item{\code{parse_array(types, n, id = NA, skip_first = 0)}}{repeatedly read the same set of information into a data frame
+
+      #' @param types a named vector of data types (for data types see \code{\link{parse_binary_data}}), 
+      #' the names are used for the columns of the resulting data frame
+      #' @param id if provided, will store the parsed data with this key in the $data field
+      #' @param n length of array
+      #' @param skip_first how many bytes to skip before reading this}
+
+\item{\code{process(...)}}{process the raw data to fill the data list}
+
+\item{\code{read_file()}}{read the binary file
+
+#' @note this does not work for very large files probably because of the 2^31-1 
+#' limit on vector size! think about ways to fix this...
+#' --> might have to acually read directly from the conection instead of the raw data buffer!}
+
+\item{\code{skip(nbyte)}}{skip nbyte number of bytes in the raw data stream}
 }}
 

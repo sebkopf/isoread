@@ -63,7 +63,12 @@ map_binary_data_type <- function(
 #' @field filename stores the filename
 #' @field creation_date stores the date the file was created (if it could be retrieved,
 #' which is not always the case when running on linux but no problem on OS X and windows)
-#' @field rawdata this is the binary i
+#' @field rawdata this is the binary raw data from the file (typically removed during cleanup
+#' unless clean_raw = FALSE)
+#' @field keys these are the Unicode and ASCII text fragments found in the binary file,
+#' they are used for navigating in the file when pulling out the relevant data (typically
+#' removed during cleanup unless clean_keys = FALSE)
+#' @field data a list that contains all the actual data pulled from the file
 BinaryFile <- setRefClass(
   "BinaryFile",
   fields = list (
@@ -77,6 +82,7 @@ BinaryFile <- setRefClass(
     ),
   methods = list(
     initialize = function(file, ...){
+      "initialize BinaryFile object, requires a file path"
       if (!missing(file))
         initFields(
           filename = basename(file),
@@ -84,21 +90,14 @@ BinaryFile <- setRefClass(
       callSuper(...)
     },
     
-    #' load the data from the file and generate key lookup
     load = function(...) {
-      ""
+      "load the data from the file and generate key lookup"
       read_file()
       find_keys()
     },
     
-    #' process  the raw data to generate to fill the data list
-    #' @exportMethod
-    #' @name process
-    #' @usage blabdbulat
-    #' @rdname BinaryFile
-    #' @describeIn BinaryFile
-    #' @note override
     process = function(...) {
+      "process the raw data to fill the data list"
       if (length(rawdata) == 0)
         stop("no data available, make sure load() was called and the binary file ",
              "is properly loaded (for example, have a look at the keys field)")
@@ -106,21 +105,23 @@ BinaryFile <- setRefClass(
     
     #' cleanup the object
     cleanup = function(clean_raw = TRUE, clean_keys = TRUE, ...) {
-      "clean up the object by removing the raw data and keys from memory"
+      "clean up the object by removing the raw data and keys (and other large but only transiently important information) from memory"
       if (clean_raw)
         rawdata <<- raw()
       if (clean_keys)
         keys <<- data.frame()
     },
     
-    #' parse binary data at current position in the data stream
-    #' advances pointer by the size of the read data 
-    #' 
-    #' @param type see \code{\link{map_binary_data_type}}
-    #' @param length see \code{\link{parse_binary_data}}
-    #' @param id if provided, will store the parsed data with this key in the \code{$data} field
-    #' @param skip_first how many bytes to skip before reading this
     parse = function(type, length = 1, id = NA, skip_first = 0) {
+      " parse binary data at current position in the data stream
+      advances pointer by the size of the read data 
+
+      #' @param type see \\code{\\link{map_binary_data_type}}
+      #' @param length see \\code{\\link{parse_binary_data}}
+      #' @param id if provided, will store the parsed data with this key in the \\code{$data} field
+      #' @param skip_first how many bytes to skip before reading this
+      "
+      
       # skip
       skip(skip_first)
       
@@ -140,13 +141,15 @@ BinaryFile <- setRefClass(
       return(read)
     },
     
-    #' repeatedly read the same set of information into a data frame
-    #' @param types a named vector of data types (for data types see \code{\link{parse_binary_data}), 
-    #' the names are used for the columns of the resulting data frame
-    #' @param id if provided, will store the parsed data with this key in the $data field
-    #' @param n length of array
-    #' @param skip_first how many bytes to skip before reading this
     parse_array = function(types, n, id = NA, skip_first = 0) {
+      "repeatedly read the same set of information into a data frame
+
+      #' @param types a named vector of data types (for data types see \\code{\\link{parse_binary_data}}), 
+      #' the names are used for the columns of the resulting data frame
+      #' @param id if provided, will store the parsed data with this key in the $data field
+      #' @param n length of array
+      #' @param skip_first how many bytes to skip before reading this"
+      
       # skip
       skip(skip_first)
       
@@ -174,13 +177,14 @@ BinaryFile <- setRefClass(
       return (df)
     },
     
-    #' skip number of bytes
     skip = function(nbyte) {
+      "skip nbyte number of bytes in the raw data stream"
       pos <<- as.integer(pos + nbyte)
     },
     
-    #' find a key by a regexp pattern
     find_key = function(pattern, occurence = 1) {
+      "find a key by a regexp pattern"
+      
       if (nrow(keys) == 0)
         stop("no keys available, make sure load() was called")
       
@@ -196,10 +200,9 @@ BinaryFile <- setRefClass(
       return(match[occurence, "value"])
     },
     
-    #' moves position to the end of a specific key
-    #' @param key name of the key
-    #' @param occurence which one to move to (first, second, third found?), use -1 for last
     move_to_key = function(key, occurence = 1) {
+      "moves position to the end of a specific occurence of a key (use -1 for last occurence)"
+      
       if (nrow(keys) == 0)
         stop("no keys available, make sure load() was called")
       
@@ -215,11 +218,13 @@ BinaryFile <- setRefClass(
       pos <<- as.integer(match[occurence, "byteEnd"]) + 1L
     },
     
-    #' read the binary file
-    #' @note this does not work for large, files probably because of the 2^31-1 
-    #' limit on vector size! think about ways to fix this...
-    #' --> might have to acually read directly from the conection instead of the raw data buffer!
     read_file = function(){
+      "read the binary file
+      
+      #' @note this does not work for very large files probably because of the 2^31-1 
+      #' limit on vector size! think about ways to fix this...
+      #' --> might have to acually read directly from the conection instead of the raw data buffer!"
+      
       path <- file.path(filepath, filename)
       if (is.na(size <- file.info(path)$size) || file.info(path)$isdir == TRUE)
         stop("file does not exist: ", path)
@@ -250,8 +255,8 @@ BinaryFile <- setRefClass(
       close(con)
     },
     
-    #' finds all unicode and ascii strings and stores them for navigation around the file
     find_keys = function(asciiL = 10, unicodeL = 5) {
+      "finds all unicode and ascii strings and stores them for navigation around the file"
       ascii <- find_ascii(asciiL)
       unicode <- find_unicode(unicodeL)
       keys <<- rbind(ascii, unicode)
@@ -293,9 +298,10 @@ BinaryFile <- setRefClass(
       return(text)
     },
     
-    #' clean up text by removing randomly found strings that are clearly not proper targets
-    #' @return vector of removed keys
+    
     clean_keys = function(removeText = NULL, removePattern = NULL, unlessByteLength = 0, unlessText = NULL) {
+      "clean up keys by removing randomly found strings that are clearly not proper targets"
+      
       rem_text <- rem_pattern <- except_length <- except_text <- integer()
       
       if (!is.null(removeText))
@@ -325,8 +331,8 @@ BinaryFile <- setRefClass(
       return(rem_keys)
     },
     
-    #' Show some info about this binary file class
     show = function() {
+      #show some useful summary info about this binary file class"
       cat("\nBinary File information:")
       cat("\nfilepath:", filepath)
       cat("\nfilename:", filename)
