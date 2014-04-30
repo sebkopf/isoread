@@ -5,8 +5,8 @@ test_that("Testing single and multi file exports", {
   expect_message(test$export_data(file = tempfile(), type = "chrom"), "chrom data exported")
   expect_message(test$export_data(file = tempfile(), type = "table"), "table data exported")
   
-  expect_error(export(c(new("IrmsData"), 'not an IrmsData object', new("IrmsData"))), "Not all data are IrmsData objects")
-  expect_error(export(c(new("IrmsContinuousFlowData"), new("IrmsDualInletData"))), "Not all data are the same kind of IrmsData object")
+  expect_error(export_data(c(new("IrmsData"), 'not an IrmsData object', new("IrmsData"))), "Not all data are IrmsData objects")
+  expect_error(export_data(c(new("IrmsContinuousFlowData"), new("IrmsDualInletData"))), "Not all data are the same kind of IrmsData object")
   
   expect_message({
     files <- isoread(c(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), system.file("extdata", "813__F8.cf", package="isoread")),
