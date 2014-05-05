@@ -273,15 +273,23 @@ BinaryFile <- setRefClass(
       return(rem_keys)
     },
     
+    get_info = function(show = c()) {
+      "Get basic information about the object"
+      rbind(
+        data.frame(Property = c("File location"), Value = c(file.path(filepath, filename))),
+        data.frame(Property = names(data), Value = vapply(data, as.character, FUN.VALUE = character(1), USE.NAMES = FALSE))
+      )
+    },
+    
     show = function() {
       #show some useful summary info about this binary file class"
       cat("\nBinary File information:")
-      cat("\nfilepath:", filepath)
-      cat("\nfilename:", filename)
       cat("\nrawdata number of bytes:", length(rawdata))
       cat("\nnumber of found text keys:",  nrow(keys))
       cat("\nnumber of assigned data fields:", length(data))
       cat("\ncurrent read position:", pos)
+      cat("\ndata information:\n")
+      print(get_info())
     }
     
     )

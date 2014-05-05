@@ -225,6 +225,14 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "data")))
     },
     
+    get_info = function(show = c()) {
+      info <- rbind(callSuper(), data.frame(Property = "Peaks in peak table", Value = as.character(nrow(peakTable))))
+      if (length(show) == 0)
+        info
+      else
+        info[na.omit(match(show, info$Property)),]
+    },
+    
     #' custom show function to display roughly what data we've got going
     show = function() {
       cat("\nShowing summary of", class(.self), "\n")
@@ -233,8 +241,6 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       print(head(chromData))
       cat("\nPeak Table:\n")
       print(peakTable)
-      cat("\nOther information:\n")
-      print(sapply(data, identity, simplify=T))
     }
   )
 )
