@@ -22,6 +22,8 @@ underlying \link{IsodatFile}.
 
 \item{\code{find_key(pattern, occurence = 1)}}{find a key by a regexp pattern}
 
+\item{\code{get_info(show = c())}}{Get basic information about the object}
+
 \item{\code{initialize(file, ...)}}{initialize BinaryFile object, requires a file path}
 
 \item{\code{plot_data(y, ylab = "", title = "data peaks")}}{plot the data of the actual sample peaks, see \code{plot_peak_table} for details on syntax}

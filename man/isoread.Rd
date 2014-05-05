@@ -18,7 +18,7 @@ isoread(files, type, ...)
 \value{
 List of file \code{type} specific objects.
 \itemize{
-   \item{'H_CSIA'}{ = instance(s) of \code{IsodatHydrogenContinuousFlowFile} which implements \code{IrmsContinuousFlowData}}.
+   \item{'H_CSIA'}{ = instance(s) of \code{\link{IsodatHydrogenContinuousFlowFile}} which implements \code{\link{IrmsContinuousFlowData}}}.
 }
 If file names start with a number,
 then the number is used as key in the list, otherwise the whole filename is the key.
@@ -26,6 +26,6 @@ If there is only one file, the object is returned directly.
 }
 \description{
 Reads isodat file(s) and returns the contents as file type specific
-instances of \code{BinaryFile} / \code{IrmsDataClass} (extends both).
+instances of \code{\link{BinaryFile}} / \code{\link{IrmsDataClass}} (extends both).
 }
 

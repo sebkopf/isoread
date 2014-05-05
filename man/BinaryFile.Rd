@@ -37,6 +37,8 @@ removed during cleanup unless clean_keys = FALSE)}
 
 \item{\code{find_keys(asciiL = 10, unicodeL = 5)}}{finds all unicode and ascii strings and stores them for navigation around the file}
 
+\item{\code{get_info(show = c())}}{Get basic information about the object}
+
 \item{\code{initialize(file, ...)}}{initialize BinaryFile object, requires a file path}
 
 \item{\code{load(...)}}{load the data from the file and generate key lookup}
