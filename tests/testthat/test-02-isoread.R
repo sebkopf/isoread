@@ -71,7 +71,8 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
     test$map_peaks(data.frame(Rt = c(1000, 1610), Component = c("test1", "test2"), Formula = c("C2O", "H25"), stringsAsFactors=F))
     test$get_peak_by_rt(c(1000, 1610))$Component
   }, c("test1", "test2"))
-  expect_equal(test$get_peak_by_rt(c(1000, 1610))$Formula, c("C2O", "H25"))
+  expect_equal(test$get_peak_by_name("test1")$Component, "test1")
+  expect_equal(test$get_peak_by_name(c("test1", "test2"))$Formula, c("C2O", "H25"))
   
   # data plotting
   expect_that(test$plot_data(), is_a("ggplot"))

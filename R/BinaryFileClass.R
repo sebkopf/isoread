@@ -276,7 +276,8 @@ BinaryFile <- setRefClass(
     get_info = function(show = c()) {
       "Get basic information about the object"
       rbind(
-        data.frame(Property = c("File location"), Value = c(file.path(filepath, filename))),
+        data.frame(Property = c("File location", "Date"), 
+                   Value = c(file.path(filepath, filename), format(creation_date))),
         data.frame(Property = names(data), Value = vapply(data, as.character, FUN.VALUE = character(1), USE.NAMES = FALSE))
       )
     },

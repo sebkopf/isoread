@@ -237,6 +237,17 @@ IrmsContinousFlowData <- setRefClass(
       }))
     },
     
+    get_peak_nr_by_name = function(names) {
+      "find peak numbers (i.e. ids) by name(s), returns a vector of found peak numbers (integer(0) if none found)"
+      
+      if (is.null(get_peak_table())) 
+        stop("can't search for peaks without a peak table")
+      
+      unlist(sapply(names, function(name) {
+        peakTable[peakTable[[peakTableKeys["name"]]] == name, peakTableKeys["peak_nr"], drop = T]
+      }))
+    },
+    
     #' @return returns the data frame of found peaks (0-row df if none found)
     get_peak = function(peak_nr, select = names(peakTable)) {
       "retrieve information for a peak in the peak table (identified by peak_nr), can specify which columns to retrieve
@@ -252,6 +263,14 @@ IrmsContinousFlowData <- setRefClass(
     get_peak_by_rt = function(rts, select = names(peakTable)) {
       "retrieve information for peak(s) in the peak table (identified by retention times)"
       peak_nrs <- get_peak_nr_by_rt(rts)
+      get_peak(peak_nrs, select = select)
+    },
+    
+    #' Get peaks by name
+    #' @param rts 
+    get_peak_by_name = function(names, select = names(peakTable)) {
+      "retrieve information for peak(s) in the peak table (identified by names)"
+      peak_nrs <- get_peak_nr_by_name(names)
       get_peak(peak_nrs, select = select)
     },
     
@@ -593,11 +612,11 @@ IrmsContinousFlowData <- setRefClass(
     # DATA EXPORT ==============
     #' summarize data to pdf
     #' @param file the file name where to save, by default saves where the file was original from
-    summarize = function(file = default_filename(), 
+    summarize = function(file = default_filename(), folder = .self$filepath, 
                          width = 16, height = 12, ...) {
       
       default_filename <- function() {
-        file.path(.self$filepath, paste0("summary_", .self$filename, ".pdf"))
+        file.path(folder, paste0("summary_", .self$filename, ".pdf"))
       }
       
       message("Creating summary for ", .self$filename, " ...")
