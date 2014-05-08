@@ -6,6 +6,19 @@
 \description{
 IrmsDualInletData reference class
 }
+\section{Methods}{
+
+\describe{
+\item{\code{export_data(file, ...)}}{export the data stored in this object to file}
+
+\item{\code{ggplot(...)}}{generate a ggplot object for the data in this IrmsData object}
+
+\item{\code{init_irms_data()}}{initialize irms data container}
+
+\item{\code{set_plot_options(...)}}{set plot options}
+
+\item{\code{summarize(file, ....)}}{summarize the data stored in this object and save it to file}
+}}
 \note{
 not implemented yet for any actual data reading
 }

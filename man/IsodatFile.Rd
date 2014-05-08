@@ -6,6 +6,15 @@
 \description{
 Class representing an isodat binary file.
 }
+\section{Methods}{
+
+\describe{
+\item{\code{cleanup(clean_raw = TRUE, clean_keys = TRUE, ...)}}{clean up the object by removing the raw data and keys (and other large but only transiently important information) from memory}
+
+\item{\code{find_key(pattern, occurence = 1)}}{find a key by a regexp pattern}
+
+\item{\code{get_info(show = c())}}{Get basic information about the object}
+}}
 \seealso{
 \link{BinaryFile}
 }
