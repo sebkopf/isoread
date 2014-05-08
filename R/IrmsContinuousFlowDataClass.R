@@ -595,10 +595,11 @@ IrmsContinousFlowData <- setRefClass(
         scale_x_continuous(expand = c(0,0)) + 
         labs(x = paste0(plotOptions$labels$x, " [", tunits, "]"), y = "", colour = "Trace")
       
-      # refrences (add to normal plot and introduce as plotOption)
-      if (!is.null(refs <- get_peak_table(type = "ref")) && nrow(refs) > 0) {
-        label.df <- data.frame(x = refs[[peakTableKeys['rt']]], y = 0, label = "*", panel = plotOptions$labels$ymasses)
-        p <- p + geom_text(data = label.df, aes(x, y, label = label, colour = NULL), show_guide = F)
+      # plot numbers and references (add to normal plot and introduce as plotOption)
+      if (!is.null(table <- get_peak_table()) && nrow(table) > 0) {
+        table$.label <- paste0(table[[peakTableKeys['peak_nr']]], ifelse(table[[peakTableKeys['ref_peak']]], "*", ""))      
+        p <- p + geom_text(data = mutate(table, .y = 0, panel = plotOptions$labels$ymasses), 
+                aes_string(x = peakTableKeys['rt'], y = ".y", label = ".label", colour = NULL), size=6, show_guide = F)
       }
       
       if (is.null(masses))
@@ -612,8 +613,9 @@ IrmsContinousFlowData <- setRefClass(
     # DATA EXPORT ==============
     #' summarize data to pdf
     #' @param file the file name where to save, by default saves where the file was original from
+    #' @param whether to try to compact the pdf to make it smaller
     summarize = function(file = default_filename(), folder = .self$filepath, 
-                         width = 16, height = 12, ...) {
+                         width = 16, height = 12, compact = TRUE, ...) {
       
       default_filename <- function() {
         file.path(folder, paste0("summary_", .self$filename, ".pdf"))
@@ -661,6 +663,13 @@ IrmsContinousFlowData <- setRefClass(
       
       dev.off()
       message("Summary saved to ", file)
+      
+      # try to compact (requires ghostscript)
+      if (compact) {
+        tryCatch(
+          tools::compactPDF(file, gs_quality = "screen"),
+          warning = function(w) {}, error = function(e) {})
+      }
     },
     
     
