@@ -22,6 +22,7 @@ NULL
 #' \itemize{
 #'    \item{'H_CSIA'}{ = compound specific IRMS data for hydrogen isotopes}
 #' }
+#' @param load_chroms whether to keep the chromatograms in the objects (otherwise only peak tables are kept)
 #' @param ... parameters passed to the \code{load} and \code{process} functions of the IsodatFile objects
 #' @return List of file \code{type} specific objects. 
 #' \itemize{
@@ -31,7 +32,7 @@ NULL
 #' then the number is used as key in the list, otherwise the whole filename is the key.
 #' If there is only one file, the object is returned directly.
 #' @export
-isoread <- function(files, type, ...) {
+isoread <- function(files, type, load_chroms = T, ...) {
   typeClass <- switch(
     type,
     H_CSIA = 'IsodatHydrogenContinuousFlowFile',
@@ -45,7 +46,7 @@ isoread <- function(files, type, ...) {
     obj$load(...)
     obj$process(...)
     obj$check_data(...)
-    obj$cleanup(clean_chrom_data = FALSE, ...)
+    obj$cleanup(clean_chrom_data = !load_chroms, ...)
     obj
   })
   
