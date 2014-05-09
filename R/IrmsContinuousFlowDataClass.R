@@ -376,9 +376,11 @@ IrmsContinousFlowData <- setRefClass(
       if (length(existing) > 0) {
         for (i in 1:nrow(map)) {
           if (length(nrs[[i]]) == 0) 
-            warning("no peak found at retention time ", map[i, peakTableKeys['rt']])
+            message("no peak found at retention time ", map[i, peakTableKeys['rt']], 
+                    " (map entry: ", paste(map[i, ], collapse = ", "), ")") # used to be warning!
           else if (length(nrs[[i]]) > 1) 
-            warning("more than one peak found at retention time ", map[i, peakTableKeys['rt']])
+            message("more than one peak found at retention time ", map[i, peakTableKeys['rt']], 
+                    " (map entry: ", paste(map[i, ], collapse = ", "), ")") # used to be warning!
           set_peak(nrs[[i]], as.list(map[i, existing, drop = F]))
         }
       }
@@ -614,8 +616,11 @@ IrmsContinousFlowData <- setRefClass(
     #' summarize data to pdf
     #' @param file the file name where to save, by default saves where the file was original from
     #' @param whether to try to compact the pdf to make it smaller
+    #' @param plots whether to include the plot
+    #' @param table whether to include the table
     summarize = function(file = default_filename(), folder = .self$filepath, 
-                         width = 16, height = 12, compact = TRUE, ...) {
+                         width = 16, height = 12, plots = TRUE, table = TRUE,
+                         compact = TRUE, ...) {
       
       default_filename <- function() {
         file.path(folder, paste0("summary_", .self$filename, ".pdf"))
@@ -626,49 +631,72 @@ IrmsContinousFlowData <- setRefClass(
       # saving to pdf
       pdf(file, width=width, height=height)
       
-      # plots (data, referenes, peak table)
-      grid.newpage()
-      pushViewport(viewport(layout = grid.layout(2, 2)))
-      print(ggplot() + 
-              labs(title = paste0("Isodat binary read of ", filename, " (analyzed on ", creation_date, ")")), 
-            vp = viewport(layout.pos.row = 1, layout.pos.col = 1:2))
-      print(plot_refs(), vp = viewport(layout.pos.row = 2, layout.pos.col = 1))
-      print(plot_data(), vp = viewport(layout.pos.row = 2, layout.pos.col = 2))
-      
       # data table (split in two)
-      cols_per_row <- ceiling((ncol(peakTable) + 4)/2)
-      g1 <- tableGrob(
-        get_peak_table()[1:cols_per_row], 
-        show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
-        gpar.coltext = gpar(fontsize=12, fontface="bold"), 
-        gpar.colfill = gpar(fill=NA,col=NA), 
-        gpar.rowfill = gpar(fill=NA,col=NA), h.even.alpha = 0)
-      g2 <- tableGrob(
-        cbind(get_peak_table()[peakTableKeys[c("peak_nr", "ref_peak", "rt", "name")]],
-              get_peak_table()[(1+cols_per_row):ncol(peakTable)]), 
-        show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
-        gpar.coltext = gpar(fontsize=12, fontface="bold"), 
-        gpar.colfill = gpar(fill=NA,col=NA), 
-        gpar.rowfill = gpar(fill=NA,col=NA), h.even.alpha = 0)
+      if (table) {
+        cols_per_row <- ceiling((ncol(peakTable) + 4)/2)
+        g1 <- tableGrob(
+          get_peak_table()[1:cols_per_row], 
+          show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
+          gpar.coltext = gpar(fontsize=12, fontface="bold"), 
+          gpar.colfill = gpar(fill=NA,col=NA), 
+          gpar.rowfill = gpar(fill=NA,col=NA), h.even.alpha = 0)
+        g2 <- tableGrob(
+          cbind(get_peak_table()[peakTableKeys[c("peak_nr", "ref_peak", "rt", "name")]],
+                get_peak_table()[(1+cols_per_row):ncol(peakTable)]), 
+          show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
+          gpar.coltext = gpar(fontsize=12, fontface="bold"), 
+          gpar.colfill = gpar(fill=NA,col=NA), 
+          gpar.rowfill = gpar(fill=NA,col=NA), h.even.alpha = 0)
+        
+        # combine the whole ting
+        
+        gall <- arrangeGrob(g1, g2, ncol=1,
+                  main=paste0("\nIsodat binary read of ", filename, " (analyzed on ", creation_date, ")",
+                              ", H3 factor: ", round(data$H3factor, digits=4),
+                              "\nGC: ", data$GCprogram, 
+                              " // AS: ", data$ASprogram, 
+                              " // Method: ", data$MSprogram))
+        
+        print(gall)
+      }
       
-      # combine the whole ting
-      gall <- arrangeGrob(g1, g2, ncol=1,
-                main=paste0("\nIsodat binary read of ", filename, " (analyzed on ", creation_date, ")",
-                            ", H3 factor: ", round(data$H3factor, digits=4),
-                            "\nGC: ", data$GCprogram, 
-                            " // AS: ", data$ASprogram, 
-                            " // Method: ", data$MSprogram))
-      
-      print(gall)
+      # plots (data, referenes, peak table)
+      if (plots) {
+        grid.newpage()
+        pushViewport(viewport(layout = grid.layout(2, 2)))
+        print(ggplot() + 
+                labs(title = paste0("Isodat binary read of ", filename, " (analyzed on ", creation_date, ")")), 
+              vp = viewport(layout.pos.row = 1, layout.pos.col = 1:2))
+        print(plot_refs(), vp = viewport(layout.pos.row = 2, layout.pos.col = 1))
+        print(plot_data(), vp = viewport(layout.pos.row = 2, layout.pos.col = 2))
+      }
       
       dev.off()
       message("Summary saved to ", file)
       
       # try to compact (requires ghostscript)
       if (compact) {
-        tryCatch(
-          tools::compactPDF(file, gs_quality = "screen"),
-          warning = function(w) {}, error = function(e) {})
+        tryCatch( {
+          # this is essentially what tools::compactPDF(file, gs_quality = "screen") does but always does the conversion (not just if it's 10% smaller)
+          tf <- tempfile("pdf")
+          res <- 0
+          res <- system2("gs", c("-q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite", 
+                            "-dPDFSETTINGS=/screen", 
+                            "-dCompatibilityLevel=1.5", 
+                            "-dAutoRotatePages=/None", 
+                            sprintf("-sOutputFile=%s", tf), 
+                            sprintf("%s", gsub("\\s", "\\\\ ", file))), FALSE, FALSE)
+          if (!res && file.exists(tf)) {
+            old <- file.info(file)$size
+            new <- file.info(tf)$size
+            if (new < old && new/old > 0.5) { # somethign went wrong if the file is less than 50 percent
+              file.copy(tf, file, overwrite = TRUE)
+              message("File successfully compacted by ", round(100 * (1-new/old)), "%")
+            }
+          }
+          unlink(tf)
+        },
+        warning = function(w) {}, error = function(e) {})
       }
     },
     
