@@ -10,13 +10,13 @@ Description: R interface for accessing isotope ratio mass spectrometry data
 License: GPL-2
 LazyLoad: yes
 Depends:
-    isotopia,
     plyr,
-    reshape2,
+    reshape2
+Suggests:
+    testthat,
+    isotopia,
     ggplot2,
     gridExtra
-Suggests:
-    testthat
 Roxygen: list(wrap = FALSE)
 Collate:
     'BinaryFileClass.R'

@@ -20,9 +20,7 @@ NULL
 IsodatHydrogenContinuousFlowFile <- setRefClass(
   "IsodatHydrogenContinuousFlowFile",
   contains = c("IsodatFile", "IrmsContinuousFlowData"),
-  fields = list (
-    ref_deviation_max = "Delta" # maximum of reference deviations (IMPLEMENT ME as max lines on the ref plot + warnings if outside)
-    ),
+  fields = list (),
   methods = list(
     #' initialize
     initialize = function(...) {
