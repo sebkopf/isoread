@@ -123,7 +123,7 @@ IrmsContinousFlowData <- setRefClass(
                          "logical" =  as.logical(data),
                          "Ratio" = ratio(as.numeric(data)), 
                          "Abundance" = abundance(as.numeric(data)),
-                         "Delta" = delta(as.numeric(data)),
+                         "Delta" = delta(`2H` = as.numeric(data), major = "1H", ref = "VSMOW"), # FIXME this only really applies to hydrogencontinuousflowfileclass!
                          stop("data type not supported: ", peakTableColumns$type[i])),
                   TRUE))
             peakTable[[peakTableColumns$column[i]]] <<- data

@@ -66,7 +66,7 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   expect_equal(test$get_peak_by_rt(286)$Width, 9.6)
   expect_error(test$map_peaks(data.frame(a=1:5)), "neither 'Peak Nr.' or 'Rt' defined")
   expect_warning(test$map_peaks(data.frame(Rt = 1, a=1:5)), "ignoring columns in the map not found in the peak table")
-  expect_warning(test$identify_peaks(c(500, 880), c("a", "b")), "no peak found at retention time")
+  expect_message(test$identify_peaks(c(500, 880), c("a", "b")), "no peak found at retention time")
   expect_equal({
     test$map_peaks(data.frame(Rt = c(1000, 1610), Component = c("test1", "test2"), Formula = c("C2O", "H25"), stringsAsFactors=F))
     test$get_peak_by_rt(c(1000, 1610))$Component

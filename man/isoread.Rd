@@ -3,7 +3,7 @@
 \alias{isoread}
 \title{Read isotope data files}
 \usage{
-isoread(files, type, ...)
+isoread(files, type, load_chroms = T, ...)
 }
 \arguments{
 \item{file}{path to the file(s) to read}
@@ -12,6 +12,8 @@ isoread(files, type, ...)
 \itemize{
    \item{'H_CSIA'}{ = compound specific IRMS data for hydrogen isotopes}
 }}
+
+\item{load_chroms}{whether to keep the chromatograms in the objects (otherwise only peak tables are kept)}
 
 \item{...}{parameters passed to the \code{load} and \code{process} functions of the IsodatFile objects}
 }

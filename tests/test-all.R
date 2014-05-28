@@ -1,2 +1,7 @@
 library(testthat)
+library(isotopia)
+library(plyr)
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
 test_check("isoread")
