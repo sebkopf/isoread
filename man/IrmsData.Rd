@@ -16,9 +16,9 @@ IrmsData reference class
 \describe{
 \item{\code{export_data(file, ...)}}{export the data stored in this object to file}
 
-\item{\code{ggplot(...)}}{generate a ggplot object for the data in this IrmsData object}
-
 \item{\code{init_irms_data()}}{initialize irms data container}
+
+\item{\code{make_ggplot(...)}}{generate a ggplot object for the data in this IrmsData object}
 
 \item{\code{set_plot_options(...)}}{set plot options}
 

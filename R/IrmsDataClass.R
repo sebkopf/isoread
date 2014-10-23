@@ -44,7 +44,7 @@ IrmsData <- setRefClass(
     },
     
     #' ggplot data
-    ggplot = function(...) {
+    make_ggplot = function(...) {
       "generate a ggplot object for the data in this IrmsData object"
       stop("not implemented for this class")
     },

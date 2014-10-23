@@ -23,12 +23,12 @@ install_github('isoread', 'sebkopf')
 
 ##Examples
 
-The following example can be run with the test data provided by the **isoread** package and illustrates the direct reading of a compound-specific hydrogen isotope dataset from the binary data file. A summary of the retrieved data can be printed out via ```$show()``` and both ```$plot()``` and ```$ggplot()``` commands for the data set are already fully implemented and provide an easy quick way for visualization (of course you can access all the raw data in the object as well via ```$get_mass_data()``` and ```$get_ratio_data()``` and process it as needed). Please use the help files in R for details on functions and paramters (e.g. via ```?isoread``` - note: the object methods' help files are not supported by ```Roxygen``` yet but this is [currently being implemented](http://lists.r-forge.r-project.org/pipermail/roxygen-devel/2014-January/000456.html) so will come soon!).
+The following example can be run with the test data provided by the **isoread** package and illustrates the direct reading of a compound-specific hydrogen isotope dataset from the binary data file. A summary of the retrieved data can be printed out via ```$show()``` and both ```$plot()``` and ```$make_ggplot()``` commands for the data set are already fully implemented and provide an easy quick way for visualization (of course you can access all the raw data in the object as well via ```$get_mass_data()``` and ```$get_ratio_data()``` and process it as needed). Please use the help files in R for details on functions and paramters (e.g. via ```?isoread``` - note: the object methods' help files are not supported by ```Roxygen``` yet but this is [currently being implemented](http://lists.r-forge.r-project.org/pipermail/roxygen-devel/2014-January/000456.html) so will come soon!).
 
 ```coffee
 library(isoread)
 obj <- isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), type = c("H_CSIA"))
 obj$show()
 obj$plot()
-obj$ggplot()
+obj$make_ggplot()
 ```

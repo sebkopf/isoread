@@ -173,7 +173,7 @@ quickview <- function(iso, reload = FALSE,
                       show = c("Peak Nr.", "Status", "Ref. Peak", "Component", "Rt", "Start", "End", "Ampl. 2", "d 2H/1H")) {
   if (reload || nrow(iso$chromData) == 0) 
     iso <- reload(iso, remap_peaks = T, load_chroms = T)
-  print(iso$ggplot(ratios=c()))
+  print(iso$make_ggplot(ratios=c()))
   print(iso$get_peak_table()[show])
   invisible(iso)
 }

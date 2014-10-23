@@ -3,7 +3,7 @@ context("Isoread")
 test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   
   expect_error(isoread("test", type = "C_CSIA"), "not a currently supported file type")
-  expect_that(test <- isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), readChromData = TRUE, clean_keys = FALSE, type = "H_CSIA"), is_a("IsodatFile"))
+  expect_that(test <- suppressMessages(isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), readChromData = TRUE, clean_keys = FALSE, type = "H_CSIA")), is_a("IsodatFile"))
 
   # key tests
   expect_that(nrow(test$keys), equals(3127)) # number of keys found in the test file (after IsodatFile style cleanup!)
@@ -26,9 +26,9 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
     test$plot(tlim = c(10, 15), tunits = "min")
     TRUE
   })
-  expect_that(test$ggplot(masses = NULL), is_a("ggplot"))
-  expect_that(test$ggplot(ratios = NULL), is_a("ggplot"))
-  expect_that(test$ggplot(tlim = c(10, 15), tunits = "min"), is_a("ggplot"))
+  expect_that(test$make_ggplot(masses = NULL), is_a("ggplot"))
+  expect_that(test$make_ggplot(ratios = NULL), is_a("ggplot"))
+  expect_that(test$make_ggplot(tlim = c(10, 15), tunits = "min"), is_a("ggplot"))
   
   # peak table test
   expect_true(nrow(test$peakTable) > 0) # peak table loaded
@@ -41,8 +41,10 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   
   # different resaved versions of the same file
   expect_identical(
-    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), type = "H_CSIA")$get_peak_table(),
-    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2_resaved.cf", package="isoread"), type = "H_CSIA")$get_peak_table()
+    suppressMessages(
+    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), type = "H_CSIA")$get_peak_table()),
+    suppressMessages(
+    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2_resaved.cf", package="isoread"), type = "H_CSIA")$get_peak_table())
     )
   
   # refrence peak tests and changes
@@ -87,7 +89,12 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
 
 test_that("Testing isoread whole folder read", {
   # read all .cf files in extdata folder
-  expect_that(isofiles <- isoread_folder(system.file("extdata", package="isoread"), ext=".cf", warn = FALSE, type = c("H_CSIA")), is_a("list"))
+  expect_that(isofiles <- 
+                suppressMessages(suppressWarnings(
+                  isoread_folder(system.file("extdata", package="isoread"), 
+                                 ext=".cf", warn = FALSE, 
+                                 type = c("H_CSIA")))
+                ), is_a("list")) # WARN attribute will be deprecated in the future
   
   # make sure they can all be printed
   expect_true({
