@@ -209,6 +209,7 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       y = to_delta(`rR 3H2/2H2`, mean(`rR 3H2/2H2`)), 
       ylab = "dD [permil] vs mean ratio", 
       title = "Variation in reference peaks"){
+      
       # FIXME not sure how to call super from here to avoid this code replication
       do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "ref")))
     },

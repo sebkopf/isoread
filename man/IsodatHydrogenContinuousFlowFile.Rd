@@ -20,11 +20,11 @@ underlying \link{IsodatFile}.
 \describe{
 \item{\code{cleanup(clean_raw = TRUE, clean_keys = TRUE, ...)}}{clean up the object by removing the raw data and keys (and other large but only transiently important information) from memory}
 
-\item{\code{find_key(pattern, occurence = 1)}}{find a key by a regexp pattern}
-
 \item{\code{get_info(show = c())}}{Get basic information about the object}
 
 \item{\code{initialize(file, ...)}}{initialize BinaryFile object, requires a file path}
+
+\item{\code{load(...)}}{load the data from the file and generate key lookup}
 
 \item{\code{plot_data(y, ylab = "", title = "data peaks")}}{plot the data of the actual sample peaks, see \code{plot_peak_table} for details on syntax}
 

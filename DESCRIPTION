@@ -11,12 +11,13 @@ License: GPL-3
 LazyLoad: yes
 Depends:
     plyr,
-    reshape2
+    reshape2,
+    isotopia
 Suggests:
     testthat,
-    isotopia,
     ggplot2,
-    gridExtra
+    gridExtra,
+    xlsx
 Roxygen: list(wrap = FALSE)
 VignetteBuilder: knitr
 URL: https://github.com/sebkopf/isoread

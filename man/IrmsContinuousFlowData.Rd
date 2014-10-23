@@ -28,8 +28,6 @@ and compound name)}
   ratios = names(.self$plotOptions$ratios), ..., warn = TRUE)}}{checks the consistency of the chromatographic data, by default checks for 
 all masses and ratios}
 
-\item{\code{check_data(...)}}{check the data consistency, calls \code{check_crom_data} and \code{check_peak_table}}
-
 \item{\code{check_peak_table(..., warn = TRUE)}}{checks the consistency of the peak table and converts data types if necessary}
 
 \item{\code{export_data(file, ...)}}{export the data stored in this object to file}
@@ -53,25 +51,11 @@ with \code{selec}, retrieves all columns by default}
 \item{\code{get_ratio_data(ratios = names(.self$plotOptions$ratios), melt = FALSE)}}{get the ratio trace data for specific ratios, can be provided in \code{melt = TRUE} format
 for easy use in ggplot style plotting}
 
-\item{\code{ggplot(tlim = NULL,
-  tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]],
-  masses = names(.self$plotOptions$masses),
-  ratios = names(.self$plotOptions$ratios))}}{ggplot the data
-
-    #' @param tlim time range (in tunits units)
-    
-    #' @param tunits units (currently 's' or 'min')
-     
-    #' @param masses vector of the masses to plot (if NULL, panel excluded)
-    
-    #' @param ratios vector of the ratios to plot (if NULL, panel excluded)
-      }
-
-\item{\code{ggplot(...)}}{generate a ggplot object for the data in this IrmsData object}
-
 \item{\code{identify_peaks(rts, compounds)}}{Identify peaks by mapping compound names to retention times}
 
 \item{\code{init_irms_data()}}{initialize irms data container}
+
+\item{\code{make_ggplot(...)}}{generate a ggplot object for the data in this IrmsData object}
 
 \item{\code{map_peaks(map)}}{Add information to peaks by mapping properties from a data frame
 that contains at least the defined peak number (e.g. `Peak Nr.`) or 
@@ -81,20 +65,6 @@ to existing columns, otherwise they are disregarded with a warning.
 
 Note: make sure to have the data.frame that is passed in set with
 \code{stringsAsFactors = F} (usually the desired setting for the mapping)}
-
-\item{\code{plot(tlim = NULL, mass_ylim = NULL, ratio_ylim = NULL,
-  masses = names(.self$plotOptions$masses),
-  ratios = names(.self$plotOptions$ratios),
-  tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]])}}{Plot the data (both masses and ratios) - much faster than ggplot but not as versatile
-  
-  #' @param tlim time range, should be in the same tunits
-  
-#' @param masses which masses to plot (all defined in plot optinos by default)
- 
-#' @param ratios which ratios to plot (all defined in plot options by default)
- 
-#' @param tunits time units, as defined in tunits (currently either 's' or 'min'), takes the one set in plotOptions as default      
-  }
 
 \item{\code{plot_data(y, ylab = "", title = "data peaks")}}{plot the data of the actual sample peaks, see \code{plot_peak_table} for details on syntax}
 
@@ -120,8 +90,6 @@ Note: make sure to have the data.frame that is passed in set with
 \item{\code{plot_refs(y, ylab = "", title = "references")}}{plot the data of the reference peaks, see \code{plot_peak_table} for details on syntax}
 
 \item{\code{reevaluate_peak_table()}}{reevalutes the peak table (not currently implemented)}
-
-\item{\code{set_plot_options(...)}}{set plot options}
 
 \item{\code{set_ref_peaks(rts, set = TRUE, reevaluate = FALSE)}}{Identify peaks (by their retention times) as reference peaks (or remove their status as a reference peak)}
 

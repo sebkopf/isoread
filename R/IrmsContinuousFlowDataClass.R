@@ -552,7 +552,7 @@ IrmsContinousFlowData <- setRefClass(
     #' @param tunits units (currently "s" or "min")
     #' @param masses vector of the masses to plot (if NULL, panel excluded)
     #' @param ratios vector of the ratios to plot (if NULL, panel excluded)
-    ggplot = function(tlim = NULL, tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]],
+    make_ggplot = function(tlim = NULL, tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]],
                       masses = names(.self$plotOptions$masses),
                       ratios = names(.self$plotOptions$ratios)) {
       "ggplot the data
@@ -565,6 +565,8 @@ IrmsContinousFlowData <- setRefClass(
     
     #' @param ratios vector of the ratios to plot (if NULL, panel excluded)
       "
+      
+      library(ggplot2)
       
       # checks
       if (is.null(masses) && is.null(ratios))
@@ -592,7 +594,7 @@ IrmsContinousFlowData <- setRefClass(
       data$variableF <- factor(data$variable, levels = names(traces), labels = traces)
             
       # plot
-      p <- ggplot2:::ggplot(data, aes_string(x = time, y = "signal.offset", colour = "variableF")) +
+      p <- ggplot(data, aes_string(x = time, y = "signal.offset", colour = "variableF")) +
         geom_line() + theme_bw() +
         scale_x_continuous(expand = c(0,0)) + 
         labs(x = paste0(plotOptions$labels$x, " [", tunits, "]"), y = "", colour = "Trace")
@@ -600,8 +602,9 @@ IrmsContinousFlowData <- setRefClass(
       # plot numbers and references (add to normal plot and introduce as plotOption)
       if (!is.null(table <- get_peak_table()) && nrow(table) > 0) {
         table$.label <- paste0(table[[peakTableKeys['peak_nr']]], ifelse(table[[peakTableKeys['ref_peak']]], "*", ""))      
+        
         p <- p + geom_text(data = mutate(table, .y = 0, panel = plotOptions$labels$ymasses), 
-                aes_string(x = peakTableKeys['rt'], y = ".y", label = ".label", colour = NULL), size=6, show_guide = F)
+                ggplot2::aes_string(x = peakTableKeys['rt'], y = ".y", label = ".label", colour = NULL), size=6, show_guide = F)
       }
       
       if (is.null(masses))
@@ -621,6 +624,9 @@ IrmsContinousFlowData <- setRefClass(
     summarize = function(file = default_filename(), folder = .self$filepath, 
                          width = 16, height = 12, plots = TRUE, table = TRUE,
                          compact = TRUE, ...) {
+      # these are only in the 'suggests' list so need to make sure to require them
+      library(ggplot2)
+      library(gridExtra)
       
       default_filename <- function() {
         file.path(folder, paste0("summary_", .self$filename, ".pdf"))
@@ -664,7 +670,7 @@ IrmsContinousFlowData <- setRefClass(
       if (plots) {
         grid.newpage()
         pushViewport(viewport(layout = grid.layout(2, 2)))
-        print(ggplot() + 
+        print(make_ggplot() + 
                 labs(title = paste0("Isodat binary read of ", filename, " (analyzed on ", creation_date, ")")), 
               vp = viewport(layout.pos.row = 1, layout.pos.col = 1:2))
         print(plot_refs(), vp = viewport(layout.pos.row = 2, layout.pos.col = 1))
