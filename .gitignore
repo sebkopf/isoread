@@ -6,3 +6,12 @@
 .R*
 *.*~
 .Rproj.user
+
+# Local package copy for autotest
+.local/*
+
+# Tmp directory
+tmp/*
+
+# Ignore plots created by testing functionality
+tests/testthat/*.pdf
