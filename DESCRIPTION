@@ -28,6 +28,7 @@ Collate:
     'IrmsContinuousFlowDataClass.R'
     'IrmsDualInletDataClass.R'
     'IsodatFileClass.R'
+    'IsodatClumpedDataFileClass.R'
     'IsodatHydrogenContinuousFlowFileClass.R'
     'export.R'
     'isoread.R'
