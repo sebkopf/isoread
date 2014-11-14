@@ -7,6 +7,7 @@
 #' @docType package
 #' @title isoread package
 #' @author Sebastian Kopf
+#' @author Max Lloyd
 NULL
 
 #' @include IsodatHydrogenContinuousFlowFileClass.R
@@ -36,6 +37,7 @@ isoread <- function(files, type, load_chroms = T, ...) {
   typeClass <- switch(
     type,
     H_CSIA = 'IsodatHydrogenContinuousFlowFile',
+    CLUMPED = 'IsodatClumpedDataFile',
     stop("not a currently supported file type: '", type, "'"))
   
   files <- as.list(files)

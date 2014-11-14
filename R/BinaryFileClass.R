@@ -83,6 +83,8 @@ BinaryFile <- setRefClass(
       return(read)
     },
     
+    # IMPLEMENT skip_after_each for easy recuriing motive recognition
+    # current problem with that is that it loops through by type (=col)
     parse_array = function(types, n, id = NA, skip_first = 0) {
       "repeatedly read the same set of information into a data frame
 
