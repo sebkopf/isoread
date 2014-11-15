@@ -12,9 +12,12 @@ test_that("testing dual inlet binary files",{
   
   expect_true(test$move_to_key("CDualInletEvaluatedData") > 1)
   
-  stop("found: ", as.integer(test$keys[which(grepl("Background:", test$keys))[1], "byteEnd"]) + 1L)
+  #print(test$keys[which()[1], ])
+  #stop("found: ")
+  
+  #stop("found: ", as.integer(test$keys[which(grepl("Background:", test$keys))[1], "byteEnd"]) + 1L)
   expect_true(test$move_to_key("Background:") > 1)
-  test$pos <<- as.integer(test$keys[which(grepl("Background:", test$keys))[1], "byteEnd"]) + 1L
+  #test$pos <<- as.integer(test$keys[which(grepl("Background:", test$keys))[1], "byteEnd"]) + 1L
   #this fails? why? what's with the semicolons?
   
 })

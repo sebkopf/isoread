@@ -144,22 +144,23 @@ BinaryFile <- setRefClass(
       return(match[occurence, "value"])
     },
     
-    move_to_key = function(key, occurence = 1) {
-      "moves position to the end of a specific occurence of a key (use -1 for last occurence)"
+    move_to_key = function(key, occurence = 1, fixed = TRUE) {
+      "moves position to the end of a specific occurence of a key (use -1 for last occurence)
+      #' @param fixed whether to find the key by regexp match or fixed string (default = fixed string)"
       
       if (nrow(keys) == 0)
         stop("no keys available, make sure load() was called")
       
-      if (nrow(match <- subset(keys, value==key)) == 0)
+      if (length(idx <- grep(key, keys$value, fixed = fixed)) == 0)
         stop("key '", key, "' was not found")
       
-      if (occurence == -1) occurence <- nrow(match)
+      if (occurence == -1) occurence <- length(idx)
       
-      if (occurence > nrow(match))
-        stop("key '", key, "' was found but only has ", nrow(match), " occurences ",
+      if (occurence > length(idx))
+        stop("key '", key, "' was found but only has ", length(idx), " occurences ",
              "(trying to select occurence #", occurence, ")")
       
-      pos <<- as.integer(match[occurence, "byteEnd"]) + 1L
+      pos <<- as.integer(keys[idx[occurence], "byteEnd"]) + 1L
     },
     
     read_file = function(){
