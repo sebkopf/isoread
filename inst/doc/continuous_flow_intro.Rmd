@@ -1,33 +1,40 @@
-# Introduction to isoread
+---
+title: "Continuous Flow Intro"
+output: html_document
+---
 
-These are the code chunks used in the R packages appendix for the isotopia section.
-
-```{r}
-library(knitr)
-```
-
+## Installation (not run)
 
 ```{r, eval=FALSE}
 library(devtools)
-install_github('isoread', 'sebkopf', ref = "v0.2")
+install_github('isoread', 'sebkopf', ref = "dev")
 ```
 
-```{r}
-library(isotopia)
+## Load file
+
+```{r load}
 library(isoread)
-file <- isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), 
-                type = "H_CSIA")
+file <- isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), type = "H_CSIA")
 ```
 
-```{r}
-kable(file$get_mass_data()[1:5,], format = "latex")
+## Raw mass data
+
+Just the first couple of lines, not the whoel chromatogram
+
+```{r show-data, results='asis'}
+library(knitr)
+kable(head(file$get_mass_data()))
 ```
 
+## Plot Chromatogram
 
-```{r}
-library(ggplot2)
+```{r ggplot}
 file$make_ggplot()
 ```
+
+### Time window
+
+Only plot a specific time window and 
 
 ```{r}
 file$plot_masses(tlim = c(12.3, 12.6), tunits = "min")

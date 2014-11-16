@@ -1,0 +1,62 @@
+---
+title: "Dual Inlet Intro"
+output: html_document
+---
+
+## Installation (not run)
+
+```{r, eval=FALSE}
+library(devtools)
+install_github('isoread', 'sebkopf', ref = "dev")
+```
+
+## Load file
+
+```{r load}
+library(isoread)
+file <- isoread(system.file("extdata", "dual_inlet_clumped_carbonate.did", package="isoread"), type = "CO2_CLUMPED")
+```
+
+## Raw data
+
+```{r raw-data, results='asis', fig.width=10, fig.height=7}
+library(knitr)
+kable(file$get_mass_data())
+file$make_ggplot()
+```
+
+#### Or only a few masses
+
+```{r subset}
+file$make_ggplot(masses = c("mass44", "mass47"))
+```
+
+## Processed data
+
+#### Whole table
+
+The entire table of processed data.
+
+```{r processed-data-all, results='asis'}
+kable(file$get_data_table())
+```
+
+#### Summary
+
+```{r processed-data-sum, results='asis'}
+kable(file$get_data_table(summarize = TRUE))
+```
+
+#### Or only a few of these
+
+```{r processed-subset, results='asis'}
+kable(file$get_data_table(select = c("d13C", "d18O"), sum = T))
+```
+
+## Other info
+
+And whatever other information was pulled out of the file.
+
+```{r file-info, results='asis'}
+kable(file$get_info())
+```
