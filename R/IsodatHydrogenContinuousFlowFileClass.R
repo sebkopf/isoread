@@ -115,10 +115,10 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       # other information
       move_to_key("H3 Factor")
       parse("double", id = "H3factor", skip_first = 8)
-      data$GCprogram <<- find_key(".gcm$")
-      data$MSprogram <<- find_key(".met$")
-      data$Filename <<- find_key(".cf$")
-      data$ASprogram <<- find_key("Internal")
+      data$GCprogram <<- find_key(".gcm$")$value
+      data$MSprogram <<- find_key(".met$")$value
+      data$Filename <<- find_key(".cf$")$value
+      data$ASprogram <<- find_key("Internal")$value
       
       # reorganize data, move to IrmsDataClass structure
       if (readChromData) {

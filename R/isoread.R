@@ -27,6 +27,8 @@ NULL
 #' @param ... parameters passed to the \code{load} and \code{process} functions of the IsodatFile objects
 #' @return List of file \code{type} specific objects. 
 #' \itemize{
+#'    \item{'DUAL'}{ = instance(s) of a basic \code{\link{IsodatDualInletFile}} which implements \code{\link{IrmsDualInletData}}}.
+#'    \item{'CO2_CLUMPED'}{ = instance(s) of the more specialized \code{\link{IsodatClumbedCO2File}} which extends \code{\link{IsodatDualInletFile}}}.
 #'    \item{'H_CSIA'}{ = instance(s) of \code{\link{IsodatHydrogenContinuousFlowFile}} which implements \code{\link{IrmsContinuousFlowData}}}.
 #' }
 #' If file names start with a number,
@@ -37,7 +39,8 @@ isoread <- function(files, type, load_chroms = T, ...) {
   typeClass <- switch(
     type,
     H_CSIA = 'IsodatHydrogenContinuousFlowFile',
-    CLUMPED = 'IsodatClumpedDataFile',
+    DUAL = 'IsodatDualInletFile',
+    CO2_CLUMPED = 'IsodatClumpedCO2File',
     stop("not a currently supported file type: '", type, "'"))
   
   files <- as.list(files)

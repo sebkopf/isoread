@@ -56,13 +56,15 @@ IrmsContinousFlowData <- setRefClass(
     
     # DATA CHECKS ============================
     
-    check_data = function(...) {
-      "check the data consistency, calls \\code{check_crom_data} and \\code{check_peak_table}"
-      callSuper(...)
+    # FIXME: refactor such that check_chrom_data is renmaed directly to check_mass_data
+    check_mass_data = function(...) {
       check_chrom_data(...)
-      check_peak_table(...)
     },
     
+    # FIXME: refactor such that check_data_table is renamed directly to check_peak_table
+    check_data_table = function(...) {
+      check_peak_table(...)
+    },
     
     check_chrom_data = function(masses = names(.self$plotOptions$masses), 
                                 ratios = names(.self$plotOptions$ratios), ..., warn = TRUE) {
@@ -138,6 +140,11 @@ IrmsContinousFlowData <- setRefClass(
     },
     
     # DATA RETRIEVAL ==============
+    
+    # FIXME: refactor such that check_chrom_data is renmaed directly to check_mass_data
+    get_data_table = function(...){
+      get_peak_table(...)
+    },
     
     get_peak_table = function(type = c("ref", "data", "both")) {
       "retrieve the peak table"

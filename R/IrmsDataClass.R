@@ -5,7 +5,10 @@
 IrmsData <- setRefClass(
   "IrmsData",
   fields = list (
-    plotOptions = 'list'
+    plotOptions = 'list', # stores options for plotting the data
+    massData = 'data.frame', # stores raw data for all measured masses (e.g. voltages)
+    dataTable = 'data.frame', # stores processed data table (=data summary)
+    dataTableColumns = 'data.frame' # the columns of the data table
     ),
   methods = list(
     #' constructor
@@ -16,7 +19,19 @@ IrmsData <- setRefClass(
     
     init_irms_data = function() {
       "initialize irms data container"
-      plotOptions <<- list()
+      
+      # template for plot options
+      plotOptions <<- list(
+        masses = list() # example entry: mass46 = list(label = "Mass 46", color="black") 
+      )
+      
+      # template for dataTableColumn definitions
+      # data - name of the column header for in the data
+      # column - name of the column stored in the data table
+      # units - units of the data are in
+      # type - which mode it is (character, numeric, logical, Ratio, Abundance, Delta, etc.)
+      # show - whether to show this column in standard data table outputs
+      dataTableColumns <<- data.frame(data = character(), column = character(), units = character(), type = character(), show = logical(), stringsAsFactors = FALSE)
     },
     
     #' @example setSettings(a=5, b='test', ...)
@@ -35,11 +50,43 @@ IrmsData <- setRefClass(
       plotOptions <<- modifyList(plotOptions, options)
     },
     
+    # DATA CHECKS ============================
+    
     #' check internal consistency of data
     check_data = function(...) {
+      check_mass_data(...)
+      check_data_table(...)
     },
     
+    check_mass_data = function(...) {
+      "checks the consistency of the raw mass data" 
+    },
+    
+    check_data_table = function(...) {
+      "checks the consistency of the table data" 
+    },
+    
+    # DATA RETRIEVAL ==============
+    
+    #' get data for masses
+    #' @param masses which masses to retrieve, all defined ones by default
+    #' @param melt whether to melt the data frame
+    get_mass_data = function(masses = names(.self$plotOptions$masses), melt = FALSE, ...) {
+      "get the mass trace data for specific masses, can be provided in \\code{melt = TRUE} long format
+      for easy use in ggplot style plotting"
+      stop("not implemented for this class")
+    },
+    
+    get_data_table = function(...) {
+      "retrieve the data table"
+      stop("not implemented for this class")
+    },
+    
+    # PLOTTING ===================
+      
+    #' plot data
     plot = function(...) {
+      "plot data with standard plot functions (fast) to standard output"
       stop("not implemented for this class")
     },
     
