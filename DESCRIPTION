@@ -12,10 +12,10 @@ LazyLoad: yes
 Depends:
     plyr,
     reshape2,
+    ggplot2,
     isotopia
 Suggests:
     testthat,
-    ggplot2,
     gridExtra,
     xlsx
 Roxygen: list(wrap = FALSE)
@@ -28,7 +28,8 @@ Collate:
     'IrmsContinuousFlowDataClass.R'
     'IrmsDualInletDataClass.R'
     'IsodatFileClass.R'
-    'IsodatClumpedDataFileClass.R'
+    'IsodatDualInletFileClass.R'
+    'IsodatClumpedCO2FileClass.R'
     'IsodatHydrogenContinuousFlowFileClass.R'
     'export.R'
     'isoread.R'
