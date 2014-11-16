@@ -14,9 +14,10 @@ Hadley Wickham's **devtools** package provides a super convenient way of install
 install.packages('devtools', depen=T) # development tools
 ```
 
-Then simply install the latest version of **isoread** directly from GitHub by running the following code (if it is the first time you install the **isoread** package, all missing dependencies will be automatically installed as well -> **ggplot2, plyr, reshape2, stringr** as well as their respective dependencies, which might take a minute):
+Then simply install the latest version of **isoread** directly from GitHub by running the following code (if it is the first time you install the **isoread** package, all missing dependencies will be automatically installed as well -> **ggplot2, plyr, reshape2, stringr** as well as their respective dependencies, which might take a minute, except for the **isotopia** package which is not on CRAN yet - see code below):
 ```coffee
 library(devtools)
+install_github('isotopia', 'sebkopf') # not on CRAN yet
 install_github('isoread', 'sebkopf')
 ```
 
