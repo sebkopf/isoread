@@ -40,7 +40,7 @@ obj$plot()
 obj$make_ggplot()
 ```
 
-For a more detailed introduction, check out the [continous flow intro](inst/doc/continuous_flow_intro.Rmd) and the resulting [HTML output](https://rawgit.com/sebkopf/isoread/dev/inst/doc/continuous_flow_intro.html)!
+For a more detailed introduction, **check out the [continuous flow intro](inst/doc/continuous_flow_intro.Rmd)** and the resulting [HTML output](https://rawgit.com/sebkopf/isoread/master/inst/doc/continuous_flow_intro.html)!
 
 #### Dual Inlet
 
@@ -55,7 +55,7 @@ obj$show()
 obj$make_ggplot()
 ```
 
-For a more detailed introduction, check out the [dual inlet intro](inst/doc/dual_inlet_intro.Rmd) and the resulting [HTML output](https://rawgit.com/sebkopf/isoread/dev/inst/doc/dual_inlet_intro.html)!
+For a more detailed introduction, **check out the [dual inlet intro](inst/doc/dual_inlet_intro.Rmd)** and the resulting [HTML output](https://rawgit.com/sebkopf/isoread/master/inst/doc/dual_inlet_intro.html)!
 
 ## Development
 
