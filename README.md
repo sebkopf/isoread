@@ -28,28 +28,34 @@ The following examples can be run with the test data provided by the **isoread**
 
 #### Continuous flow
 
-The The following examples can be run with the test data provided by the **isoread** package and illustrates the direct reading of a compound-specific hydrogen isotope dataset from the binary data file. A summary of the retrieved data can be printed out via ```$show()``` and both ```$plot()``` and ```$make_ggplot()``` commands for the data set are already fully implemented and provide an easy quick way for visualization (of course you can access all the raw data in the object as well via ```$get_mass_data()``` and ```$get_ratio_data()``` and process it as needed). Please use the help files in R for details on functions and paramters (e.g. via ```?isoread``` - note: the object methods' help files are not supported by ```Roxygen``` yet but this is [currently being implemented](http://lists.r-forge.r-project.org/pipermail/roxygen-devel/2014-January/000456.html) so will come soon!).
+The following example llustrates the direct reading of a compound-specific hydrogen isotope dataset from the binary data file. A summary of the retrieved data can be printed out via ```$show()``` and both ```$plot()``` (fast plotting of the chromatographic data) and ```$make_ggplot()``` (ggplot that is slower but easy to manipulate). Of course, you can access all the raw data in the object as well via ```$get_mass_data()``` and ```$get_ratio_data()``` and process it as needed). 
 
 ```coffee
 library(isoread)
-obj <- isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), type = c("H_CSIA"))
+obj <- isoread(
+  system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), 
+  type = c("H_CSIA"))
 obj$show()
 obj$plot()
 obj$make_ggplot()
 ```
 
+For a more detailed introduction, check out the [continous flow intro](inst/doc/continuous_flow_intro.Rmd) and the resulting [HTML output](https://rawgit.com/sebkopf/isoread/dev/inst/doc/continuous_flow_intro.html)!
+
 #### Dual Inlet
 
-Thanks to the push from [Max Lloyd](https://github.com/maxmansaxman), **isoread** now finally has basic support for dual inlet isotope data and specifically supports reading clumped CO2 runs. The following example illustrates the direct reading of a clumped CO2 dual inlet dataset from the binary data file, and prints out a summary of the retrieved data via ```$show()``` and ```$make_ggplot()```. For a more detailed introduction, please check out the [dual inlet intro R markdown file](blob/dev/inst/doc/dual_inlet_intro.Rmd) and the resulting [HTML output](https://rawgit.com/sebkopf/isoread/dev/inst/doc/dual_inlet_intro.html).
+Thanks to a push from [Max Lloyd](https://github.com/maxmansaxman), **isoread** now has basic support for dual inlet isotope data and specifically supports reading clumped CO2 runs. The following example illustrates the direct reading of a clumped CO2 dual inlet dataset from the binary data file, and prints out a summary of the retrieved data via ```$show()``` and ```$make_ggplot()```. 
 
 ```coffee
 library(isoread)
-file <- isoread(system.file("extdata", "dual_inlet_clumped_carbonate.did", package="isoread"), type = "CO2_CLUMPED")
-file$show()
-file$make_ggplot()
+obj <- isoread(
+  system.file("extdata", "dual_inlet_clumped_carbonate.did", package="isoread"), 
+  type = "CO2_CLUMPED")
+obj$show()
+obj$make_ggplot()
 ```
 
-
+For a more detailed introduction, check out the [dual inlet intro](inst/doc/dual_inlet_intro.Rmd) and the resulting [HTML output](https://rawgit.com/sebkopf/isoread/dev/inst/doc/dual_inlet_intro.html)!
 
 ## Development
 
