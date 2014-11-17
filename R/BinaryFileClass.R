@@ -83,6 +83,8 @@ BinaryFile <- setRefClass(
       return(read)
     },
     
+    # IMPLEMENT skip_after_each for easy recuriing motive recognition
+    # current problem with that is that it loops through by type (=col)
     parse_array = function(types, n, id = NA, skip_first = 0) {
       "repeatedly read the same set of information into a data frame
 
@@ -124,40 +126,48 @@ BinaryFile <- setRefClass(
       pos <<- as.integer(pos + nbyte)
     },
     
-    find_key = function(pattern, occurence = 1) {
-      "find a key by a regexp pattern"
+    find_key = function(pattern, occurence = NULL, fixed = FALSE, byte_min = 0, byte_max = length(rawdata)) {
+      "finds all keys matching 'key' or a specific occurence of it (use -1 for last occurence)
+      #' @param fixed whether to find the key(s) by regexp match or fixed string (default = pattern)
+      #' @param byte_min only look for keys that start after this position
+      #' @param byte_max only look for keys that start before this position
+      #' @return the lines of the keys data frame with all the information about the found key(s)"
       
       if (nrow(keys) == 0)
         stop("no keys available, make sure load() was called")
       
-      if (nrow(match <- keys[grep(pattern, keys$value),]) == 0)
-        stop("pattern '", pattern, "' was not found")
+      sub_keys <- subset(keys, byteStart > byte_min & byteStart < byte_max)
+      if (nrow(sub_keys) == 0)
+        stop("no keys in this byte interval: ", byte_min, " - ", byte_max)
       
-      if (occurence == -1) occurence <- nrow(match)
+      if (length(idx <- grep(pattern, sub_keys$value, fixed = fixed)) == 0)
+        stop("key '", pattern, "' was not found")
       
-      if (occurence > nrow(match))
-        stop("pattern '", pattern, "' was found but only has ", nrow(match), " occurences ",
-             "(trying to select occurence #", occurence, ")")
+      if (!is.null(occurence)) {
+        if (occurence == -1) occurence <- length(idx)
       
-      return(match[occurence, "value"])
+        if (occurence > length(idx))
+          stop("key '", key, "' was found but only has ", length(idx), " occurences ",
+               "(trying to select occurence #", occurence, ")")
+      } else {
+        occurence <- 1:length(idx) # return ALL found occurences
+      }
+      
+      return(sub_keys[idx[occurence], , drop=F])
     },
     
-    move_to_key = function(key, occurence = 1) {
-      "moves position to the end of a specific occurence of a key (use -1 for last occurence)"
+    move_to_key = function(key, occurence = 1, fixed = TRUE) {
+      "moves position to the end of a specific key or occurence of a key 
+      #' @param key either a string or a data.frame line with key value and byteEnd (the way it is returned by find_key)
+      #' @param occurence if key is a string, which occurence to move to? (use -1 for last occurence)
+      #' @param fixed whether to find the key (if a string) by regexp match or fixed string (default = fixed string)"
       
-      if (nrow(keys) == 0)
-        stop("no keys available, make sure load() was called")
-      
-      if (nrow(match <- subset(keys, value==key)) == 0)
-        stop("key '", key, "' was not found")
-      
-      if (occurence == -1) occurence <- nrow(match)
-      
-      if (occurence > nrow(match))
-        stop("key '", key, "' was found but only has ", nrow(match), " occurences ",
-             "(trying to select occurence #", occurence, ")")
-      
-      pos <<- as.integer(match[occurence, "byteEnd"]) + 1L
+      if (is(key, "character")) key <- find_key(key, occurence, fixed)
+      else if (is(key, "list")) key <- as.data.frame(key)
+        
+      if (!is(key, "data.frame") || nrow(key) != 1 || !("byteEnd" %in% names(key))) 
+        stop("not a valid key entry, can't move there: ", key)
+      pos <<- as.integer(key["byteEnd"]) + 1L
     },
     
     read_file = function(){
@@ -278,7 +288,10 @@ BinaryFile <- setRefClass(
       rbind(
         data.frame(Property = c("File location", "Date"), 
                    Value = c(file.path(filepath, filename), format(creation_date))),
-        data.frame(Property = names(data), Value = vapply(data, as.character, FUN.VALUE = character(1), USE.NAMES = FALSE))
+        data.frame(Property = names(data), 
+                   Value = vapply(data, 
+                                  function(i) if (is(i, "data.frame")) "data frame (not shown)" else as.character(i[1]), 
+                                  FUN.VALUE = character(1), USE.NAMES = FALSE))
       )
     },
     

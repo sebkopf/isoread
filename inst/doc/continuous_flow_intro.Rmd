@@ -1,0 +1,98 @@
+---
+title: "Continuous Flow Intro"
+output: html_document
+---
+
+## Installation (not run)
+
+```{r, eval=FALSE}
+library(devtools)
+install_github('isoread', 'sebkopf')
+```
+
+## Reading a file
+
+Here, we read a simple isodat file that is provided as an example in the module. **isoread** takes all the information directly from the binary, which makes it easy to record each step of what is happening with the data. 
+
+```{r load}
+library(isoread)
+file <- isoread(
+  system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), 
+  type = "H_CSIA")
+```
+
+## Chromatographic data
+
+The *file* variable now contains an isoread object with all the information from the binary file and we can take a look at the chromatographic data in the object, here we look at the first 10 lines (using the k-table or kable command from the knitr package for table output):
+
+```{r show-data, results='asis'}
+library(knitr)
+kable(head(file$get_mass_data(), n = 10))
+```
+
+### Plot Chromatogram
+
+For convenience, **isoread** also implements several plotting functions based on standard ```plot``` as well as the ```ggplot``` module so we can have a look at the whole chromatograms:
+
+```{r ggplot, fig.width=10, fig.height=7}
+file$make_ggplot()
+```
+
+Notice that **isoread** plots all masses and ratios by default and labels the peaks with their peak numbers (reference peaks are marked with *). The plotting functions are of course a lot more flexible and we can use isoread functionality to plot just a specific time window of the mass trace chromatogram, and switch the time units to minutes instead of seconds as illustrated below:
+
+```{r}
+file$plot_masses(tlim = c(12.3, 12.6), tunits = "min")
+```
+
+## File information
+
+Since **isoread** has access to the original raw binary data file, it can extract other parameters stored with the data, here shown with the example of the H3factor registered as the most current during the analysis:
+
+```{r, results='asis'}
+kable(file$get_info("H3factor"))
+```
+
+## Peak table
+
+The table of peaks detected by isodat during the analysis or added by the user later on are also directly accessible. The complete set of 29 columns is available through **isoread**, here a small subset of key components:
+
+```{r, results='asis'}
+kable(
+subset(file$get_peak_table(), select = c("Peak Nr.", "Status", 
+    "Ref. Peak", "Component", "Rt", "Start", "End", "Ampl. 2", 
+    "d 2H/1H")))
+```
+
+Currently, none of the Components in this peak table are identified, but we can generate a mapping file that identifies which component comes out approximately at which retention time. A simple mapping table, which identifies peaks by retention time, could look like this (here only for 2 components):
+
+```{r, results='asis'}
+map <- data.frame(Rt = c(940, 1135), Component = c("C16:0 FAME", "C18:0 FAME"), stringsAsFactors=F)
+kable(map)
+```
+
+Typically, one would maintain this information for example in an excel file and load it directly from there. The map can then be applied to the peak table by **isoread**, which makes the identified peaks accessible by name:
+
+```{r, results='asis'}
+file$map_peaks(map)
+kable(
+file$get_peak_by_name(c("C16:0 FAME", "C18:0 FAME"), 
+       select = c("Peak Nr.", "Component", "Rt", "Start", "End", "Ampl. 2", "d 2H/1H")))
+```
+
+Lastly, the delta value reported in column *d 2H/1H* is automatically loaded as a delta value object using [**isotopia**](http://sebkopf.github.io/isotopia/) and can be used accordingly with all the functionality from **isotopia**. For a simple example, conversion to a fractional abundance (and switch to percent notation):
+
+```{r}
+library(isotopia)
+d <- file$get_peak_by_name(c("C16:0 FAME", "C18:0 FAME"), select = "d 2H/1H")
+print(d) 
+print(switch_notation(to_abundance(d), "percent"))
+```
+
+## Extensions
+
+Having this information available of course opens various possibilities for the implementation of useful features that are specific to the data. For example, an overview of how consistent the reference peaks in a run were is helpful for determining if one of them might be offset by an overlapping analyte or contaminant. This is implement in **isoread** by the plot_refs() functionality:
+
+```{r}
+file$plot_refs()
+```
+

@@ -1,9 +1,8 @@
 #FIXME remove again (just a helper during development)
+# automatically create a global instance of a test file on attachment of the package
 .onAttach <- function(libname, pkgname) {
-  #isoread("/Users/sk/Dropbox/VM Windows/6520__F8-5_5uL_isodat2.cf", readChromData = TRUE, type = "H_CSIA") ->> i
+  #i <<- suppressMessages(isoread(system.file("extdata", "dual_inlet_clumped_carbonate.did", package="isoread"), type = "CO2_CLUMPED"))
+  #i$load()
 }
 
-# for auto-testing, just start R in separate console inside the package and
-# run the following code:
-# library(testthat)
-# auto_test_package(pkg=".")
+# for auto-testing, just run 'make autotest' on a terminal in the isoread folder

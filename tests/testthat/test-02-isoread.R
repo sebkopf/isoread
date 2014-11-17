@@ -20,11 +20,13 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   test$cleanup(clean_chrom_data = FALSE, clean_keys = TRUE)
   expect_equal(test$keys, data.frame())
   
-  # plotting test (indirect just by checking if it works)
+  # plotting test (indirect just by checking if it works) - NOTE: plotting into a temp file so it does not generate Rplot.pdf when run from cmd line
   expect_true({
     test$set_plot_options(masses = list(mass3 = list(color = "red")))
+    pdf(file = (tfile <- tempfile()))
     test$plot(tlim = c(10, 15), tunits = "min")
-    TRUE
+    dev.off()
+    file.exists(tfile)
   })
   expect_that(test$make_ggplot(masses = NULL), is_a("ggplot"))
   expect_that(test$make_ggplot(ratios = NULL), is_a("ggplot"))
@@ -77,7 +79,7 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   expect_equal(test$get_peak_by_name(c("test1", "test2"))$Formula, c("C2O", "H25"))
   
   # data plotting
-  expect_that(test$plot_data(), is_a("ggplot"))
+   expect_that(test$plot_data(), is_a("ggplot"))
   
   # summarizing
   expect_message(test$summarize(file = tempfile()), "Summary saved")
@@ -98,7 +100,9 @@ test_that("Testing isoread whole folder read", {
   
   # make sure they can all be printed
   expect_true({
+    pdf(file = (tfile <- tempfile()))
     sapply(isofiles, function(i) i$plot())
-    TRUE
+    dev.off()
+    file.exists(tfile)
   })
 })

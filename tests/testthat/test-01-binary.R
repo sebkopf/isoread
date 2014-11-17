@@ -58,8 +58,8 @@ test_that("Testing BinaryFile Class", {
   expect_that(test$move_to_key("H3 Factor") > 1, is_true())
   test$skip(8)
   expect_that(test$parse("double", id = "H3") > 2, is_true()) # rough check for a reasonable H3 factor
-  expect_true(length(test$find_key(".gcm$")) > 0, label = "Looking for gc program file name")
-  expect_true(length(test$find_key(".met$")) > 0, label = "Looking for MS method")
-  expect_true(length(test$find_key(".cf$")) > 0)
-  expect_true(length(test$find_key("Internal")) > 0)
+  expect_true(length(test$find_key(".gcm$")$value) > 0, label = "Looking for gc program file name")
+  expect_true(length(test$find_key(".met$")$value) > 0, label = "Looking for MS method")
+  expect_true(length(test$find_key(".cf$")$value) > 0)
+  expect_true(length(test$find_key("Internal")$value) > 0)
 })
