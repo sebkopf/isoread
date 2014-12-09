@@ -6,8 +6,10 @@ output: html_document
 ## Installation (not run)
 
 ```{r, eval=FALSE}
+install.packages('devtools', depen=T) 
 library(devtools)
-install_github('isoread', 'sebkopf')
+install_github('sebkopf/isotopia')
+install_github('sebkopf/isoread')
 ```
 
 ## Reading a file
