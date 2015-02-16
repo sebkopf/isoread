@@ -2,7 +2,7 @@ context("Dual Inlet")
 
 test_that("Testing general dual inlet binary file",{
   # load test file
-  expect_that(test <- suppressMessages(isoread(system.file("extdata", "dual_inlet_clumped_carbonate.did", package="isoread"), type = "DUAL")), is_a("IsodatDualInletFile"))
+  expect_that(test <- suppressMessages(isoread(system.file("extdata", "dual_inlet_clumped_carbonate.did", package="isoread"), type = "DI")), is_a("IsodatDualInletFile"))
   
   # check key number
   expect_that({test$load(); nrow(test$keys)}, equals(1842))
@@ -40,12 +40,12 @@ test_that("Testing general dual inlet binary file",{
     `d 17O/16O ` = c(6.20232096749262, 6.19288569364174, 6.19574314518756, 6.19559676140047, 6.20189262822857, 6.1984266942936, 6.19617654484061), 
     `AT% 13C/12C ` = c(1.10805634956821, 1.10804793388553, 1.10805401552957, 1.10804663377992, 1.10804462049446, 1.10804374113609, 1.10804860514639), 
     `AT% 18O/16O ` = c(0.207580927072588, 0.207577162613362, 0.207578302667939, 0.207578244264249, 0.207580756174273, 0.207579373342358, 0.20757847558426)), 
-    .Names = c("cycle", "d 45CO2/44CO2 ", "d 46CO2/44CO2 ", "d 13C/12C ", "d 18O/16O ", "d 17O/16O ", "AT% 13C/12C ", "AT% 18O/16O "), row.names = c(NA, -7L), class = "data.frame"))
+    .Names = c("cycle", "d 45CO2/44CO2", "d 46CO2/44CO2", "d 13C/12C", "d 18O/16O", "d 17O/16O", "AT% 13C/12C", "AT% 18O/16O"), row.names = c(NA, -7L), class = "data.frame"))
   
   expect_error(test$get_data_table(select = c("non column")), "Some data .* do not exist in the loaded dataTable")
   
-  expect_equal(test$get_data_table(select = c("d 13C/12C ", "d 18O/16O "), summarize = TRUE), 
-              structure(list(Variable = structure(1:2, .Label = c("d 13C/12C ", "d 18O/16O "), class = "factor"), 
+  expect_equal(test$get_data_table(select = c("d 13C/12C", "d 18O/16O"), summarize = TRUE), 
+              structure(list(Variable = structure(1:2, .Label = c("d 13C/12C", "d 18O/16O"), class = "factor"), 
                              Mean = c(2.18612605082155, 37.3569787854591), 
                              `Std. Devi.` = c(0.00430160752664701, 0.00697422407563108), 
                              `Std. Error.` = c(0.00162585482190166, 0.00263600892739416)), 
@@ -59,14 +59,26 @@ test_that("Testing general dual inlet binary file",{
   
   # data retrieval
   expect_equal(names(test$get_mass_data(masses = c("mass46", "mass49"))), c("analysis", "cycle", "mass46", "mass49"))
-  expect_equal(names(test$get_data_table(select = c("cycle", "d 45CO2/44CO2 ", "AT% 18O/16O "), summarize = FALSE)), 
-               c("cycle", "d 45CO2/44CO2 ", "AT% 18O/16O "))
+  expect_equal(names(test$get_data_table(select = c("cycle", "d 45CO2/44CO2", "AT% 18O/16O"), summarize = FALSE)), 
+               c("cycle", "d 45CO2/44CO2", "AT% 18O/16O"))
   
   # plotting
   expect_error(test$plot(), "not implemented yet")
   expect_that(test$make_ggplot(masses = c("mass44", "mass45")), is_a("ggplot"))
 })
 
+
+test_that("Testing specialized instance of the general dual inlet example", {
+  
+  expect_that(test <- suppressMessages(
+    isoread(system.file("extdata", "dual_inlet_example.did", package="isoread"), type = "DI")), is_a("IsodatFile"))
+  
+  expect_equal(
+    as.character(test$get_data_table(summarize = TRUE)$Variable), 
+    c("d 32O2/28N2", "d 32O2/29N2", "d 40Ar/28N2", 
+      "d 32O2/40Ar", "d 44CO2/28N2", "d 44CO2/40Ar"))
+  
+})
 
 test_that("Testing specialized instance of dual inlet file: isodat clumped CO2", {
   
@@ -77,3 +89,6 @@ test_that("Testing specialized instance of dual inlet file: isodat clumped CO2",
     c("d13C", "d18O", "d17O", "at% 13C", "at% 18O"))
   
 })
+
+
+

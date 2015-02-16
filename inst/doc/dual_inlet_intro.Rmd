@@ -3,50 +3,52 @@ title: "Dual Inlet Intro"
 output: html_document
 ---
 
+Here, we read two simple dual inlet isodat files that are provided as examples in the module. **isoread** takes all the information directly from the binary, which makes it easy to record each step of what is happening with the data. 
+
 ## Installation (not run)
 
 ```{r, eval=FALSE}
 install.packages('devtools', depen=T) 
 library(devtools)
 install_github('sebkopf/isotopia')
-install_github('isoread', 'sebkopf')
+install_github('sebkopf/isoread')
 ```
 
-Here, we read two simple dual inlet isodat files that are provided as examples in the module. **isoread** takes all the information directly from the binary, which makes it easy to record each step of what is happening with the data. 
+# Dual inlet example 1
 
-# Oxygen isotope data
+We start by loading the example dual inlet file (`type = "DI"`) stored in the isoread package using the `isoread` command. 
 
-First, we load an oxygen isotope dual inlet file (`type = "O2_DI"`). The specialized implementation of the oxygen data file allows direct access to all the data summary values in addition to the raw voltage readings. However, the raw mass data could be read from any dual inlet (`.did`) file by specifiying `type = "DUAL"`.
-
-```{r load-o2}
+```{r load-ex1}
 library(isoread)
-file <- isoread(system.file("extdata", "dual_inlet_O2.did", package="isoread"), type = "O2_DI")
+path <- system.file(package="isoread", "extdata", "dual_inlet_example.did")
+file <- isoread(path, type = "DI")
 ```
 
-The `file` variable now contains an isoread object with all the information from the binary file and we can take a look at the data it holds.
+The `file` variable now contains an isoread object with all the information that was extracted from the binary file and we can take a look at the data it holds.
 
 ## Raw data
 
-The raw voltages provide information on the signal stability between the sample and standard for all recorded masses. Here, we are using the k-table or `kable` command from the `knitr` package for lightly formatted table output. Instead, we can also just retrieve the raw mass data as a data frame using the `get_mass_data()` method, which, if needed, can be easily exported to a csv file using the `export_data(type="raw")` method (data export is described in more details later). 
+The raw voltages provide information on the signal stability between the sample and standard for all recorded masses. Here, we are using the k-table or `kable` command from the `knitr` package for lightly formatted table output. Instead, we can also just retrieve the raw mass data as a data frame using the `get_mass_data()` method, which, if needed, can be easily exported to a csv file (described in more details later). 
 
-```{r raw-data-o2, results='asis'}
+```{r raw-data-ex1, results='asis'}
 library(knitr)
 kable(file$get_mass_data())
 ```
 
-#### Visualiztion
+#### Visualization
 
 For convenience, **isoread** also implements several plotting functions so we can quickly visualize the raw data. The `make_ggplot()` method generates a `ggplot2` plot object which can be printed (or saved as a PDF) as is, or modified using all functionality provided by the `ggplot2` - here for example, with the addition of a figure caption.
 
-```{r raw-data-plot-o2, fig.width=10, fig.height=7}
+```{r raw-data-plot-ex1, fig.width=10, fig.height=7}
 file$make_ggplot() + labs(title = "Raw mass voltages plot")
+ggsave("my_file.pdf", width = 10, height = 7)
 ```
 
 #### Or only a few masses
 
 The `make_ggplot()` method can take additional parameters to plot only specific masses of interest.
 
-```{r subset-o2}
+```{r subset-ex1}
 file$make_ggplot(masses = c("mass32", "mass34"))
 ```
 
@@ -54,45 +56,54 @@ file$make_ggplot(masses = c("mass32", "mass34"))
 
 #### Whole table
 
-The entire table of processed data.
+In theory, the data reduction could be performed *ab initio* from the raw voltage counts, but in practice it is often easier to start with the precomputed processed data from Isodat and pipe those information to the standard data processing procedure that comes traditionally after this step. That's why **isoread** attempts to read the whole data table from the binary file as well, although this is the step that often requires some fine tuning to make sure the processor really captures all relevant data columns in the right format (see clumped CO2 isodat file example below).
 
-```{r processed-data-all-o2, results='asis'}
+```{r processed-data-all-ex1, results='asis'}
 kable(file$get_data_table())
 ```
 
 #### Summary
 
-```{r processed-data-sum-o2, results='asis'}
+Or to summarize the information quickly, use the parameter `summarize = TRUE`.
+
+```{r processed-data-sum-ex1, results='asis'}
 kable(file$get_data_table(summarize = TRUE))
 ```
 
-#### Or only a few of these
+#### Or to display only a few of these
 
-```{r processed-subset-o2, results='asis'}
-kable(file$get_data_table(select = c("d13C", "d18O"), sum = T))
+```{r processed-subset-ex1, results='asis'}
+kable(file$get_data_table(select = c("d 32O2/28N2", "d 44CO2/40Ar"), sum = T))
 ```
 
 ## File information
 
-Since **isoread** has access to the original raw binary data file, it can extract other parameters stored with the data. These are the ones currently retrieved by the O2 dual inlet implementation:
+Since **isoread** has access to the original raw binary data file, it can extract other parameters stored with the data. These are the ones currently retrieved for dual inlet files:
 
-```{r file-info-o2, results='asis'}
+```{r file-info-ex1, results='asis'}
 kable(file$get_info())
 ```
 
 ## Data export
 
-```{r file-export-o2}
+Lastly, **isoread** provides a convenience method (`export_data()`) to export all of these data to comma-separated-value (csv) files. 
+
+```{r file-export-ex1}
 file$export_data(file = "my_file_raw.csv", type = "raw")
 file$export_data(file = "my_file_table.csv", type = "table")
 file$export_data(file = "my_file_summary.csv", type = "summary")
 file$export_data(file = "my_file_info.csv", type = "info")
 ```
 
+### Extensions
 
-# Clumped carbonate isotope data
+For reading entire folders of isodat files, you can use the `isoread_folder` function which returns a vector of all contained isodat files as **isoread** objects. This whole group of files can be e.g. exported at once using the `export_data` function. For additional information on functionality provided by the **isoread** package, please pull up the package help via `help(package="isoread")`. 
 
-The second example is a dual inlet analysis for clumped CO2 measurements. The same way as for the O2, the specialized implementation of the **"CO2_CLUMPED"** data type allows direct acess to all the data summary values in addition to the raw voltage readings of the dual inlet data.
+For all bug reports and feature requests, please use the [Issue Tracker](!https://github.com/sebkopf/isoread/issues) on the project's GitHub page.
+
+# Example 2: Clumped carbonate isotope data
+
+The second example is a slightly more specialized dual inlet analysis for clumped CO2 measurements. Here, the specialized implementation of the **"CO2_CLUMPED"** data type ensures direct acess to all the relevant data summary values in addition to the raw voltage readings of the dual inlet data.
 
 ```{r load}
 library(isoread)
