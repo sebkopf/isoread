@@ -3,7 +3,6 @@
 #' See \code{\link{isoread}} for details on how to use.
 #' 
 #' @name isoread-package
-#' @aliases isoreadinfo
 #' @docType package
 #' @title isoread package
 #' @author Sebastian Kopf
@@ -11,12 +10,14 @@
 NULL
 
 #' @include IsodatHydrogenContinuousFlowFileClass.R
+#' @include IsodatDualInletFileClass.R
+#' @include IsodatClumpedCO2FileClass.R
 NULL
 
 #' Read isotope data files
 #' 
 #' Reads isodat file(s) and returns the contents as file type specific
-#' instances of \code{\link{BinaryFile}} / \code{\link{IrmsDataClass}} (extends both).
+#' instances of \code{\link{BinaryFile}} and \code{\link{IrmsData}} (extends both).
 #' 
 #' @param file path to the file(s) to read
 #' @param type type of the files to be read
@@ -27,7 +28,7 @@ NULL
 #' @param ... parameters passed to the \code{load} and \code{process} functions of the IsodatFile objects
 #' @return List of file \code{type} specific objects. 
 #' \itemize{
-#'    \item{'DUAL'}{ = instance(s) of a basic \code{\link{IsodatDualInletFile}} which implements \code{\link{IrmsDualInletData}}}.
+#'    \item{'DI'}{ = instance(s) of a basic \code{\link{IsodatDualInletFile}} which implements \code{\link{IrmsDualInletData}}}.
 #'    \item{'CO2_CLUMPED'}{ = instance(s) of the more specialized \code{\link{IsodatClumbedCO2File}} which extends \code{\link{IsodatDualInletFile}}}.
 #'    \item{'H_CSIA'}{ = instance(s) of \code{\link{IsodatHydrogenContinuousFlowFile}} which implements \code{\link{IrmsContinuousFlowData}}}.
 #' }
@@ -39,7 +40,7 @@ isoread <- function(files, type, load_chroms = T, ...) {
   typeClass <- switch(
     type,
     H_CSIA = 'IsodatHydrogenContinuousFlowFile',
-    DUAL = 'IsodatDualInletFile',
+    DI = 'IsodatDualInletFile',
     CO2_CLUMPED = 'IsodatClumpedCO2File',
     stop("not a currently supported file type: '", type, "'"))
   

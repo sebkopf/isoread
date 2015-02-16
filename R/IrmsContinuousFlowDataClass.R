@@ -2,8 +2,8 @@
 NULL
 
 #' IrmsContinuousFlowData reference class
-#' @exportClass IrmsContinuousFlowData
 #' @name IrmsContinuousFlowData
+#' @exportClass IrmsContinuousFlowData
 #' @field chromData stores the chromatographic data (the actual mass and ratio data traces),
 #' @field peakTable stores the peak table (detected peaks and all their information)
 #' @field peakTableColumns stores the definition of which columns exist in the

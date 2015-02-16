@@ -1,6 +1,7 @@
 #' IrmsData reference class
 #' 
 #' @name IrmsData
+#' @aliases get_data_table, make_ggplot
 #' @field plotOptions holds information about default plotting options
 IrmsData <- setRefClass(
   "IrmsData",
@@ -9,6 +10,7 @@ IrmsData <- setRefClass(
     massData = 'data.frame', # stores raw data for all measured masses (e.g. voltages)
     dataTable = 'data.frame', # stores processed data table (=data summary)
     dataTableColumns = 'data.frame' # the columns of the data table
+    
     ),
   methods = list(
     #' constructor

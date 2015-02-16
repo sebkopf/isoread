@@ -87,7 +87,7 @@ IsodatDualInletFile <- setRefClass(
       # NOTE: this could (should ?) be calculated from the raw voltage data directly
       eval_data_keys <- find_key("^(d |AT).+$",
                                 byte_min = find_key("CDualInletEvaluatedData", occ = 1, fix = T)$byteEnd, 
-                                byte_max = find_key("Sequence Line Information", occ = 1, fix = T)$byteStart)
+                                byte_max = find_key("Gas Indices", occ = 1, fix = T)$byteStart)
       if (nrow(eval_data_keys) == 0)
         stop("could not find evaluated data in this file")
       
@@ -96,9 +96,12 @@ IsodatDualInletFile <- setRefClass(
         move_to_key(eval_data_keys[i,])
         gap_to_data <- switch(
           substr(eval_data_keys[i, "value"], 1, 2), 
-          `d ` = 54, `AT` = 50)
-        # these are evaluated data points for ALL cycles
-        eval_data[[eval_data_keys[i,"value"]]] <- parse("double", length = 2 * n_cycles, skip_first = gap_to_data)[c(FALSE, TRUE)] 
+          `d ` = 54, `AT` = 50) 
+        # these are evaluated data points for ALL cycles 
+        # (each data point starts with 8 x00 characters, so technically the gap is 62/58 instead of 54/50)
+        # Note: the keys all have a space at the end --> trailing white spaces removed
+        eval_data[[sub("\\s+$", "", eval_data_keys[i,"value"])]] <- 
+          parse("double", length = 2 * n_cycles, skip_first = gap_to_data)[c(FALSE, TRUE)] 
       }
       dataTable <<- data.frame(eval_data, check.names = F)
       
@@ -140,6 +143,31 @@ IsodatDualInletFile <- setRefClass(
         else value <- x # keep value for key (which comes AFTER its value)
       }
       
+    },
+    
+    # EXPORT ===================
+    
+    #' export data (by default to csv)
+    export_data = function(file = default_filename(), type = c("raw", "table", "summary", "info"), extension = "csv", sep = ",", headers = TRUE, ...) {
+      # what to export
+      if (missing(type)) type <- "summary"
+      type <- match.arg(type)
+      
+      # default filename
+      default_filename <- function() {
+        file.path(.self$filepath, paste0("export_", .self$filename, "_", type, ".", extension))
+      }
+      
+      message("Creating ", type, " export for ", .self$filename, " ...")
+      if (type == "raw") 
+        write.table(get_mass_data(), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      else if (type == "table")
+        write.table(get_data_table(), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      else if (type == "summary")
+        write.table(get_data_table(summarize = TRUE), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      else if (type == "info")
+        write.table(get_info(), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      message(type, " data exported to ", file)
     },
     
     #' custom show function to display roughly what data we've got going

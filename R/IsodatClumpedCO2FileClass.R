@@ -20,9 +20,9 @@ IsodatClumpedCO2File <- setRefClass(
       # specifically define the data table columns of CO2 dual inlet files
       dataTableColumns <<- 
         data.frame(
-          data = c("cycle", "d 45CO2/44CO2 ", "d 46CO2/44CO2 ", 
-                   "d 13C/12C ", "d 18O/16O ", "d 17O/16O ", 
-                   "AT% 13C/12C ", "AT% 18O/16O "),
+          data = c("cycle", "d 45CO2/44CO2", "d 46CO2/44CO2", 
+                   "d 13C/12C", "d 18O/16O", "d 17O/16O", 
+                   "AT% 13C/12C", "AT% 18O/16O"),
           column = c("cycle", "d 45CO2/44CO2", "d 46CO2/44CO2",
                      "d13C", "d18O", "d17O", 
                      "at% 13C", "at% 18O"),
