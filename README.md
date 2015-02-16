@@ -44,7 +44,7 @@ For a more detailed introduction, **check out the [continuous flow intro](inst/d
 
 #### Dual Inlet
 
-Thanks to a push from [Max Lloyd](https://github.com/maxmansaxman), **isoread** now has basic support for dual inlet isotope data and specifically supports reading clumped CO2 runs. The following example illustrates the direct reading of a clumped CO2 dual inlet dataset from the binary data file, and prints out a summary of the retrieved data via ```$show()``` and ```$make_ggplot()```. 
+Thanks to a push from [Max Lloyd](https://github.com/maxmansaxman) and example provided by Paul Gauthier, **isoread** now has basic support for dual inlet isotope data and specifically supports reading clumped CO2 runs. The following example illustrates the direct reading of a clumped CO2 dual inlet dataset from the binary data file, and prints out a summary of the retrieved data via ```$show()``` and ```$make_ggplot()```. 
 
 ```coffee
 library(isoread)
