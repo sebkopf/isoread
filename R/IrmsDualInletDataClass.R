@@ -172,6 +172,5 @@ IrmsDualInletData <- setRefClass(
       
       return(p)
     }
-    
   )
 )

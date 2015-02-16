@@ -21,8 +21,7 @@ isoread(files, type, load_chroms = T, ...)
 \value{
 List of file \code{type} specific objects.
 \itemize{
-   \item{'DUAL'}{ = instance(s) of a basic \code{\link{IsodatDualInletFile}} which implements \code{\link{IrmsDualInletData}}}.
-   \item{'O2_DI'}{ = instance(s) of the more specialized \code{\link{IsodatOxygenDualInletFile}} which extends \code{\link{IsodatDualInletFile}}}.
+   \item{'DI'}{ = instance(s) of a basic \code{\link{IsodatDualInletFile}} which implements \code{\link{IrmsDualInletData}}}.
    \item{'CO2_CLUMPED'}{ = instance(s) of the more specialized \code{\link{IsodatClumbedCO2File}} which extends \code{\link{IsodatDualInletFile}}}.
    \item{'H_CSIA'}{ = instance(s) of \code{\link{IsodatHydrogenContinuousFlowFile}} which implements \code{\link{IrmsContinuousFlowData}}}.
 }
