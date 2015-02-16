@@ -1,6 +1,14 @@
 #' @include IrmsDataClass.R
 NULL
 
+# note: methods documentation not ideal, this requires specific ?`IrmsDualInletData$get_data_table` 
+# to call up the documentation
+# potentially implement additional description this way (although not clear how to overwrite existing documentation)
+# @section Methods:
+# \describe{
+#   \item{\code{get_data_table(parameter_1 = 3)}}{This method uses \code{parameter_1} to ...}
+# }
+
 #' IrmsDualInletData reference class
 #' @note not implemented yet for any actual data reading
 #' @name IrmsDualInletData
@@ -108,7 +116,7 @@ IrmsDualInletData <- setRefClass(
     #' by default, returns all data table columns that are enabled with show = TRUE
     #' @param summarize whether to show whole data table or just the summary
     get_data_table = function(select = default_select(), summarize = FALSE) {
-      
+     
       default_select <- function() {
         dataTableColumns$column[dataTableColumns$show]
       }

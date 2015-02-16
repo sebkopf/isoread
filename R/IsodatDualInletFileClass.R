@@ -142,6 +142,31 @@ IsodatDualInletFile <- setRefClass(
       
     },
     
+    # EXPORT ===================
+    
+    #' export data (by default to csv)
+    export_data = function(file = default_filename(), type = c("raw", "table", "summary", "info"), extension = "csv", sep = ",", headers = TRUE, ...) {
+      # what to export
+      if (missing(type)) type <- "summary"
+      type <- match.arg(type)
+      
+      # default filename
+      default_filename <- function() {
+        file.path(.self$filepath, paste0("export_", .self$filename, "_", type, ".", extension))
+      }
+      
+      message("Creating ", type, " export for ", .self$filename, " ...")
+      if (type == "raw") 
+        write.table(get_mass_data(), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      else if (type == "table")
+        write.table(get_data_table(), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      else if (type == "summary")
+        write.table(get_data_table(summarize = TRUE), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      else if (type == "info")
+        write.table(get_info(), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+      message(type, " data exported to ", file)
+    },
+    
     #' custom show function to display roughly what data we've got going
     show = function() {
       cat("\nShowing summary of", class(.self), "\n")
