@@ -454,8 +454,10 @@ IrmsContinousFlowData <- setRefClass(
     #' @param tunits time units, as defined in tunits (currently either 's' or 'min'), takes the one set in plotOptions as default      
       "
       layout(matrix(c(1,2), byrow=TRUE, ncol=1))
-      plot_ratios(tlim = tlim, ylim = ratio_ylim, ratios = ratios, tunits = tunits)
-      plot_masses(tlim = tlim, ylim = mass_ylim, masses = masses, tunits = tunits)
+      if (!is.null(ratios))
+        plot_ratios(tlim = tlim, ylim = ratio_ylim, ratios = ratios, tunits = tunits)
+      if (!is.null(masses))
+        plot_masses(tlim = tlim, ylim = mass_ylim, masses = masses, tunits = tunits)
     },
     
     #' Plot the masses (this if much faster than ggplot but not as versatile)

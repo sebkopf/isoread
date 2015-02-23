@@ -11,20 +11,12 @@ version is 2.0 for chromatographic and peak table data and isodat version 2.5 an
 3.0 for chromatographic data only).
 }
 \details{
-This class is derived from \link{IrmsContinuousFlowData} which defines a number
-of useful plotting, export and data access methods. This class also derived
-\link{BinaryFile} which provides functionality for interacting with the
-underlying \link{IsodatFile}.
+This class is derived indirectly from \link{IrmsContinuousFlowData} which defines a
+number of useful plotting, export and data access methods.
 }
 \section{Methods}{
 
 \describe{
-\item{\code{cleanup(clean_raw = TRUE, clean_keys = TRUE, ...)}}{clean up the object by removing the raw data and keys (and other large but only transiently important information) from memory}
-
-\item{\code{get_info(show = c())}}{Get basic information about the object}
-
-\item{\code{initialize(file, ...)}}{initialize BinaryFile object, requires a file path}
-
 \item{\code{load(...)}}{load the data from the file and generate key lookup}
 
 \item{\code{plot_data(y, ylab = "", title = "data peaks")}}{plot the data of the actual sample peaks, see \code{plot_peak_table} for details on syntax}
@@ -36,6 +28,6 @@ underlying \link{IsodatFile}.
 \item{\code{reevaluate_peak_table()}}{reevalutes the peak table (not currently implemented)}
 }}
 \seealso{
-\link{BinaryFile}, \link{IsodatFile}, \link{IrmsContinuousFlowData}, \link{IrmsData}
+\link{BinaryFile}, \link{IsodatFile}, \link{IsodatContinuousFlowFile}, \link{IrmsContinuousFlowData}, \link{IrmsData}
 }
 

@@ -30,7 +30,8 @@ NULL
 #' \itemize{
 #'    \item{'DI'}{ = instance(s) of a basic \code{\link{IsodatDualInletFile}} which implements \code{\link{IrmsDualInletData}}}.
 #'    \item{'CO2_CLUMPED'}{ = instance(s) of the more specialized \code{\link{IsodatClumbedCO2File}} which extends \code{\link{IsodatDualInletFile}}}.
-#'    \item{'H_CSIA'}{ = instance(s) of \code{\link{IsodatHydrogenContinuousFlowFile}} which implements \code{\link{IrmsContinuousFlowData}}}.
+#'    \item{'CFLOW'}{ = instance(s) of a basic \code{\link{IsodatContinuousFlowFile}} which extends \code{\link{IsodatContinuousFlowData}}}.
+#'    \item{'H_CSIA'}{ = instance(s) of \code{\link{IsodatHydrogenContinuousFlowFile}} which extends \code{\link{IsodatContinuousFlowFile}}}.
 #' }
 #' If file names start with a number,
 #' then the number is used as key in the list, otherwise the whole filename is the key.
@@ -39,6 +40,7 @@ NULL
 isoread <- function(files, type, load_chroms = T, ...) {
   typeClass <- switch(
     type,
+    CFLOW = 'IsodatContinuousFlowFile',
     H_CSIA = 'IsodatHydrogenContinuousFlowFile',
     DI = 'IsodatDualInletFile',
     CO2_CLUMPED = 'IsodatClumpedCO2File',
