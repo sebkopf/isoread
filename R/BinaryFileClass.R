@@ -222,7 +222,7 @@ BinaryFile <- setRefClass(
     #' @return data frame of found ascii strings
     #' FIXME: it appears that after each string, there are 3x null character (i.e. 00 00 00) --> use this to make finding strings better! (couldn't quite figure out how to recognize 00 characters)
     find_ascii = function(minlength) {
-      regexp<-paste("[\u0020-\u007e]{", minlength, ",}", sep="")
+      regexp<-paste("[\x20-\x7e]{", minlength, ",}", sep="")
       text <- data.frame(
         byteStart = grepRaw(regexp, rawdata, all=TRUE), #get ANSII strings
         value = ldply(grepRaw(regexp, rawdata, all=TRUE, value=TRUE), 
@@ -237,7 +237,8 @@ BinaryFile <- setRefClass(
     #' @param minlength minimun length of unicode characters (each are 2 bytes long)
     #' @return data frame with found unicode strings
     find_unicode = function(minlength) {
-      regexp<-paste("([\u0020-\u007e][^\u0020-\u007e]){", minlength, ",}", sep="")
+      # FIXME: this should be using [\x20-\x7e]\\x00
+      regexp<-paste("([\x20-\x7e]\\x00){", minlength, ",}", sep="")
       text<-data.frame(
         byteStart = grepRaw(regexp, rawdata, all=TRUE), #get Unicode strings
         value = ldply(grepRaw(regexp, rawdata, all=TRUE, value=TRUE), 
@@ -249,7 +250,6 @@ BinaryFile <- setRefClass(
       text$strLength<-text$byteLength/2
       return(text)
     },
-    
     
     clean_keys = function(removeText = NULL, removePattern = NULL, unlessByteLength = 0, unlessText = NULL) {
       "clean up keys by removing randomly found strings that are clearly not proper targets"

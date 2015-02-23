@@ -11,26 +11,19 @@ IrmsContinuousFlowData reference class
 \section{Fields}{
 
 \describe{
-\item{\code{chromData}}{stores the chromatographic data (the actual mass and ratio data traces),}
+\item{\code{massData}}{stores the chromatographic data (the actual mass and ratio data traces),
+inherited from IrmsDataClass}
 
-\item{\code{peakTable}}{stores the peak table (detected peaks and all their information)}
+\item{\code{dataTable}}{stores the peak table (detected peaks and all their information),
+inherited from IrmsDataClass}
 
-\item{\code{peakTableColumns}}{stores the definition of which columns exist in the
-peak table and what their proper data types are}
-
-\item{\code{peakTableKeys}}{stores information about which columns correspond
-to key elements of the peakTable (e.g. the peak number, retention time
+\item{\code{dataTableKeys}}{stores information about which columns correspond
+to key elements of the dataTable (e.g. the peak number, retention time
 and compound name)}
 }}
 \section{Methods}{
 
 \describe{
-\item{\code{check_chrom_data(masses = names(.self$plotOptions$masses),
-  ratios = names(.self$plotOptions$ratios), ..., warn = TRUE)}}{checks the consistency of the chromatographic data, by default checks for 
-all masses and ratios}
-
-\item{\code{check_peak_table(..., warn = TRUE)}}{checks the consistency of the peak table and converts data types if necessary}
-
 \item{\code{export_data(file, ...)}}{export the data stored in this object to file}
 
 \item{\code{get_data_table(...)}}{retrieve the data table}
@@ -38,18 +31,16 @@ all masses and ratios}
 \item{\code{get_mass_data(masses = names(.self$plotOptions$masses), melt = FALSE, ...)}}{get the mass trace data for specific masses, can be provided in \code{melt = TRUE} long format
 for easy use in ggplot style plotting}
 
-\item{\code{get_peak(peak_nr, select = names(peakTable))}}{retrieve information for a peak in the peak table (identified by peak_nr), can specify which columns to retrieve
+\item{\code{get_peak(peak_nr, select = names(dataTable))}}{retrieve information for a peak in the peak table (identified by peak_nr), can specify which columns to retrieve
 with \code{selec}, retrieves all columns by default}
 
-\item{\code{get_peak_by_name(names, select = names(peakTable))}}{retrieve information for peak(s) in the peak table (identified by names)}
+\item{\code{get_peak_by_name(names, select = names(dataTable))}}{retrieve information for peak(s) in the peak table (identified by names)}
 
-\item{\code{get_peak_by_rt(rts, select = names(peakTable))}}{retrieve information for peak(s) in the peak table (identified by retention times)}
+\item{\code{get_peak_by_rt(rts, select = names(dataTable))}}{retrieve information for peak(s) in the peak table (identified by retention times)}
 
 \item{\code{get_peak_nr_by_name(names)}}{find peak numbers (i.e. ids) by name(s), returns a vector of found peak numbers (integer(0) if none found)}
 
 \item{\code{get_peak_nr_by_rt(rts)}}{find peak numbers (i.e. ids) by retention time(s), returns a vector of found peak numbers (integer(0) if none found)}
-
-\item{\code{get_peak_table(type = c("ref", "data", "both"))}}{retrieve the peak table}
 
 \item{\code{get_ratio_data(ratios = names(.self$plotOptions$ratios), melt = FALSE)}}{get the ratio trace data for specific ratios, can be provided in \code{melt = TRUE} format
 for easy use in ggplot style plotting}
@@ -78,7 +69,7 @@ Note: make sure to have the data.frame that is passed in set with
   tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]])}}{Plot the masses (this if much faster than ggplot but not as versatile)}
 
 \item{\code{plot_peak_table(y = NULL, ylab = "", title = "",
-  data = get_peak_table())}}{Plot the data points in the peak table
+  data = get_data_table())}}{Plot the data points in the peak table
 
 #' @param y = expression which data to plot (will be evaluated in context of the data frame)
 

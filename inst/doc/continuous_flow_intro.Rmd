@@ -60,7 +60,7 @@ The table of peaks detected by isodat during the analysis or added by the user l
 
 ```{r, results='asis'}
 kable(
-subset(file$get_peak_table(), select = c("Peak Nr.", "Status", 
+subset(file$get_data_table(), select = c("Peak Nr.", "Status", 
     "Ref. Peak", "Component", "Rt", "Start", "End", "Ampl. 2", 
     "d 2H/1H")))
 ```

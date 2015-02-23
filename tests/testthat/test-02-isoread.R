@@ -1,4 +1,4 @@
-context("Isoread")
+context("Isoread / Continuous Flow test")
 
 test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   
@@ -6,7 +6,7 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   expect_that(test <- suppressMessages(isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), readChromData = TRUE, clean_keys = FALSE, type = "H_CSIA")), is_a("IsodatFile"))
 
   # key tests
-  expect_that(nrow(test$keys), equals(3127)) # number of keys found in the test file (after IsodatFile style cleanup!)
+  expect_that(nrow(test$keys), equals(3104)) # number of keys found in the test file (after IsodatFile style cleanup!)
   expect_that(names(test$data), equals(c('data_trace_name', 'n_measurements', 'n_ions',  
        'trace1_name', 'trace2_name', 'data_ratio_name', 'n_ratio_measurements', 
        'n_ratios', 'H3factor', 'GCprogram', 'MSprogram', 'Filename', 
@@ -33,9 +33,9 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   expect_that(test$make_ggplot(tlim = c(10, 15), tunits = "min"), is_a("ggplot"))
   
   # peak table test
-  expect_true(nrow(test$peakTable) > 0) # peak table loaded
-  expect_true(length(setdiff(test$peakTableColumns$column, names(test$peakTable))) == 0) # all columns defined
-  expect_true(all(sapply(test$peakTable, class, simplify=T) == test$peakTableColumns$type)) # all correct data type
+  expect_true(nrow(test$dataTable) > 0) # peak table loaded
+  expect_true(length(setdiff(test$dataTableColumns$column, names(test$dataTable))) == 0) # all columns defined
+  expect_true(all(sapply(test$dataTable, class, simplify=T) == test$dataTableColumns$type)) # all correct data type
   
   # newer versions of isodat
   expect_warning(isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.5.cf", package="isoread"), type = "H_CSIA"), "files from isodat 2.5 and 3.1 .* are currently not yet supported")
@@ -44,25 +44,25 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   # different resaved versions of the same file
   expect_identical(
     suppressMessages(
-    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), type = "H_CSIA")$get_peak_table()),
+    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), type = "H_CSIA")$get_data_table()),
     suppressMessages(
-    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2_resaved.cf", package="isoread"), type = "H_CSIA")$get_peak_table())
+    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2_resaved.cf", package="isoread"), type = "H_CSIA")$get_data_table())
     )
   
   # refrence peak tests and changes
-  expect_equal(nrow(test$get_peak_table()), 19)
-  expect_equal(nrow(test$get_peak_table(type = "ref")), 5)
-  expect_equal(nrow(test$get_peak_table(type = "data")), 14)
+  expect_equal(nrow(test$get_data_table()), 19)
+  expect_equal(nrow(test$get_data_table(type = "ref")), 5)
+  expect_equal(nrow(test$get_data_table(type = "data")), 14)
   expect_that(test$plot_refs(), is_a("ggplot"))
   
   expect_equal({ # add extra reference peak
     test$set_ref_peaks(612, set = TRUE)
-    test$get_peak_table(type = "ref")$`Peak Nr.`
+    test$get_data_table(type = "ref")$`Peak Nr.`
   }, c(3, 4, 7, 10, 13, 16))
   
   expect_equal({ # remove reference peaks
     test$set_ref_peaks(c(670, 1055), set = FALSE)
-    test$get_peak_table(type = "ref")$`Peak Nr.`
+    test$get_data_table(type = "ref")$`Peak Nr.`
   }, c(3, 7, 13, 16))
   
   # peak finding, identification and mapping
@@ -86,7 +86,7 @@ test_that("Testing Isodat Hydrogen Continous Flow File Class (H_CSIA)", {
   
   # chrom data cleanup
   test$cleanup(clean_chrom_data = TRUE)
-  expect_equal(test$chromData, data.frame())
+  expect_equal(test$massData, data.frame())
 })
 
 test_that("Testing isoread whole folder read", {
@@ -106,3 +106,15 @@ test_that("Testing isoread whole folder read", {
     file.exists(tfile)
   })
 })
+
+
+test_that("Testing Isodat N2O Continous Flow Analysis", {
+
+#   test <- isoread("/Users/sk/Dropbox/Tools/software/R/isoread/inst/extdata/continuous_flow_example.dxf", 
+#                   type = "H_CSIA")
+#   
+#   field <- isoread:::BinaryFile("/Users/sk/Dropbox/Tools/software/R/isoread/inst/extdata/continuous_flow_example.dxf")
+#   field$load()  
+#   write.csv(field$keys, file = "n2o_file_test.csv")
+})
+
