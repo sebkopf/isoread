@@ -19,11 +19,9 @@ number of useful plotting, export and data access methods.
 \describe{
 \item{\code{load(...)}}{load the data from the file and generate key lookup}
 
-\item{\code{plot_data(y, ylab = "", title = "data peaks")}}{plot the data of the actual sample peaks, see \code{plot_peak_table} for details on syntax}
+\item{\code{plot_data(y, ylab = "", title = "data peaks")}}{plot the data of the actual sample peaks, see \code{plot_data_table} for details on syntax}
 
-\item{\code{plot_refs(y, ylab = "", title = "references")}}{plot the data of the reference peaks, see \code{plot_peak_table} for details on syntax}
-
-\item{\code{process(...)}}{process the raw data to fill the data list}
+\item{\code{plot_refs(y, ylab = "", title = "references")}}{plot the data of the reference peaks, see \code{plot_data_table} for details on syntax}
 
 \item{\code{reevaluate_peak_table()}}{reevalutes the peak table (not currently implemented)}
 }}

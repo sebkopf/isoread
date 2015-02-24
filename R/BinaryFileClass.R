@@ -207,7 +207,7 @@ BinaryFile <- setRefClass(
       close(con)
     },
     
-    find_keys = function(asciiL = 10, unicodeL = 5) {
+    find_keys = function(asciiL = 8, unicodeL = 5) {
       "finds all unicode and ascii strings and stores them for navigation around the file"
       ascii <- find_ascii(asciiL)
       unicode <- find_unicode(unicodeL)

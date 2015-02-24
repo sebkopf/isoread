@@ -62,13 +62,9 @@ Note: make sure to have the data.frame that is passed in set with
 
 \item{\code{plot(...)}}{plot data with standard plot functions (fast) to standard output}
 
-\item{\code{plot_data(y, ylab = "", title = "data peaks")}}{plot the data of the actual sample peaks, see \code{plot_peak_table} for details on syntax}
+\item{\code{plot_data(y, ylab = "", title = "data peaks")}}{plot the data of the actual sample peaks, see \code{plot_data_table} for details on syntax}
 
-\item{\code{plot_masses(tlim = NULL, ylim = NULL,
-  masses = names(.self$plotOptions$masses),
-  tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]])}}{Plot the masses (this if much faster than ggplot but not as versatile)}
-
-\item{\code{plot_peak_table(y = NULL, ylab = "", title = "",
+\item{\code{plot_data_table(y = NULL, ylab = "", title = "",
   data = get_data_table())}}{Plot the data points in the peak table
 
 #' @param y = expression which data to plot (will be evaluated in context of the data frame)
@@ -79,11 +75,15 @@ Note: make sure to have the data.frame that is passed in set with
  
 #' @param data = peak table data (by default the whole peak table)}
 
+\item{\code{plot_masses(tlim = NULL, ylim = NULL,
+  masses = names(.self$plotOptions$masses),
+  tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]])}}{Plot the masses (this if much faster than ggplot but not as versatile)}
+
 \item{\code{plot_ratios(tlim = NULL, ylim = NULL,
   ratios = names(.self$plotOptions$ratios),
   tunits = .self$plotOptions$tunits$labels[[.self$plotOptions$tunits$value]])}}{Plot the ratios (this if much faster than ggplot but not as versatile)}
 
-\item{\code{plot_refs(y, ylab = "", title = "references")}}{plot the data of the reference peaks, see \code{plot_peak_table} for details on syntax}
+\item{\code{plot_refs(y, ylab = "", title = "references")}}{plot the data of the reference peaks, see \code{plot_data_table} for details on syntax}
 
 \item{\code{reevaluate_peak_table()}}{reevalutes the peak table (not currently implemented)}
 

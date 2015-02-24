@@ -69,6 +69,8 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
     }, 
     
     #' expand parent procdess function specifically for hydrogen continuous flow data
+    #' NOTE: this does NOT callSuper because the hydrogen file (.cf) seems very different from
+    #' generic IsodatContinuousFlowFile (.dxf)
     #' @param read_mass_data whether to read chromatographic mass+ratio data (can be a lot of data)
     process = function(read_mass_data = TRUE, ...) {
       
@@ -196,7 +198,7 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       title = "Variation in reference peaks"){
       
       # FIXME not sure how to call super from here to avoid this code replication
-      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "ref")))
+      do.call(.self$plot_data_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "ref")))
     },
     
     #' Make a ggplot of the data
@@ -206,7 +208,7 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       y = `d 2H/1H`, 
       ylab = "dD [permil] vs VSMOW", 
       title = "Data peaks"){
-      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "data")))
+      do.call(.self$plot_data_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "data")))
     }
 
   )

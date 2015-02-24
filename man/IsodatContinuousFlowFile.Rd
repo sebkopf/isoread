@@ -22,6 +22,8 @@ underlying \link{IsodatFile}.
 \item{\code{get_info(show = c())}}{Get basic information about the object}
 
 \item{\code{initialize(file, ...)}}{initialize BinaryFile object, requires a file path}
+
+\item{\code{process(...)}}{process the raw data to fill the data list}
 }}
 \seealso{
 \link{BinaryFile}, \link{IsodatFile}, \link{IrmsContinuousFlowData}, \link{IrmsData}

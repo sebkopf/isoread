@@ -41,7 +41,7 @@ removed during cleanup unless clean_keys = FALSE)}
 #' @param byte_max only look for keys that start before this position
 #' @return the lines of the keys data frame with all the information about the found key(s)}
 
-\item{\code{find_keys(asciiL = 10, unicodeL = 5)}}{finds all unicode and ascii strings and stores them for navigation around the file}
+\item{\code{find_keys(asciiL = 8, unicodeL = 5)}}{finds all unicode and ascii strings and stores them for navigation around the file}
 
 \item{\code{get_info(show = c())}}{Get basic information about the object}
 

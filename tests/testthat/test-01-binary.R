@@ -12,7 +12,7 @@ test_that("Testing BinaryFile Class", {
   expect_that({
     test$load()
     nrow(test$keys)
-  }, equals(3781)) # number of keys found in the test file
+  }, equals(4029)) # number of keys found in the test file
   
   # process header
   expect_that(test$move_to_key("unknown key"), throws_error()) # unknown key

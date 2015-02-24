@@ -5,7 +5,7 @@ test_that("Testing general dual inlet binary file",{
   expect_that(test <- suppressMessages(isoread(system.file("extdata", "dual_inlet_clumped_carbonate.did", package="isoread"), type = "DI")), is_a("IsodatDualInletFile"))
   
   # check key number
-  expect_that({test$load(); nrow(test$keys)}, equals(1808))
+  expect_that({test$load(); nrow(test$keys)}, equals(1823))
   
   # check presence of certain keys
   test_keys <- c("CTraceInfo", "CPlotRange", "CDualInletRawData", "DualInlet RawData Standard Block",

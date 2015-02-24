@@ -41,14 +41,14 @@ IrmsContinousFlowData <- setRefClass(
       # show - whether to show this column in standard peak table outputs
       dataTableColumns <<- data.frame(data = character(), column = character(), units = character(), type = character(), show = logical(), stringsAsFactors = FALSE)
       
-      # peak table keys
+      # peak table keys (with default values)
       # peak_nr = column that identifies the peak number
       # ref_peak = column that identifies reference peak column (T/F)
       # rt = column that holds the retention time
       # rt_start = column that holds the retention time at the start of the peak
       # rt_end = column that holds the retentio time at the end of the peak
       # name = column that holds the compound names
-      dataTableKeys <<- c(peak_nr = "", ref_peak = "", rt = "", rt_start = "", rt_end = "", name = "")
+      dataTableKeys <<- c(peak_nr = "Nr.", ref_peak = "Is Ref.?", rt = "Rt", rt_start = "Start", rt_end = "End", name = "Component")
     },
     
     # DATA CHECKS ============================
@@ -390,7 +390,7 @@ IrmsContinousFlowData <- setRefClass(
     #' @param ylab = y axis label
     #' @param title = title of the plot
     #' @param data = peak table data (by default the whole peak table)
-    plot_peak_table = function(y = NULL, ylab = "", title = "", data = get_data_table()) {
+    plot_data_table = function(y = NULL, ylab = "", title = "", data = get_data_table()) {
       "Plot the data points in the peak table
       
       #' @param y = expression which data to plot (will be evaluated in context of the data frame)
@@ -401,7 +401,6 @@ IrmsContinousFlowData <- setRefClass(
        
       #' @param data = peak table data (by default the whole peak table)
       "
-      
       compounds <- sapply(data[[dataTableKeys['name']]], 
                           function(i) if (nchar(i) > 0 && i != " - ") paste(i, "\n") else "")
       data$.labels = paste0(compounds, "RT: ", data[[dataTableKeys['rt']]], " (#", data[[dataTableKeys['peak_nr']]], ")")
@@ -420,14 +419,18 @@ IrmsContinousFlowData <- setRefClass(
     
     #' Make a ggplot of the references in the peak table
     plot_refs = function(y, ylab = "", title = "references") {
-      "plot the data of the reference peaks, see \\code{plot_peak_table} for details on syntax"
-      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "ref")))
+      if (missing(y))
+        stop("Need to pass in what to plot on the y axis!")
+      "plot the data of the reference peaks, see \\code{plot_data_table} for details on syntax"
+      do.call(.self$plot_data_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "ref")))
     },
     
     #' Make a ggplot of the data peaks in the peak table
     plot_data = function(y, ylab = "", title = "data peaks") {
-      "plot the data of the actual sample peaks, see \\code{plot_peak_table} for details on syntax"
-      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "data")))
+      "plot the data of the actual sample peaks, see \\code{plot_data_table} for details on syntax"
+      if (missing(y))
+        stop("Need to pass in what to plot on the y axis!")
+      do.call(.self$plot_data_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "data")))
     },
     
     #' Plot the data (both masses and ratios) - much faster than ggplot but not as versatile
@@ -453,7 +456,8 @@ IrmsContinousFlowData <- setRefClass(
      
     #' @param tunits time units, as defined in tunits (currently either 's' or 'min'), takes the one set in plotOptions as default      
       "
-      layout(matrix(c(1,2), byrow=TRUE, ncol=1))
+      if (!is.null(ratios) && !is.null(masses))
+        layout(matrix(c(1,2), byrow=TRUE, ncol=1))
       if (!is.null(ratios))
         plot_ratios(tlim = tlim, ylim = ratio_ylim, ratios = ratios, tunits = tunits)
       if (!is.null(masses))
