@@ -140,10 +140,13 @@ IsodatContinuousFlowFile <- setRefClass(
         rawcell <- rawtable[dividers[i-1]:(dividers[i]-1)]
         
         # label and units
-        label <- grepRaw("^([\x20-\x7e]\\x00){2,}", rawcell, value = TRUE)
-        end_of_gap <- grepRaw("\xff\xfe\xff\\x00\xff\xfe\xff.([\x20-\x7e]\\x00){1,}", rawcell) + 8
+        label <- rawToChar(grepRaw("^([\x20-\x7e]\\x00){2,}", rawcell, value = TRUE)[c(TRUE, FALSE)])
+        end_of_gap <- grepRaw("\xff\xfe\xff\\x00\xff\xfe\xff.([\x20-\x7e]\\x00){1,}", rawcell) + 8L
         units <- grepRaw("([\x20-\x7e]\\x00){1,}", rawcell, value = TRUE, offset = end_of_gap - 1)
         vs <- grepRaw("\xff\xfe\xff.([\x20-\x7e]\\x00){1,}", rawcell, value = TRUE, offset = end_of_gap + length(units) - 1)
+        
+        if (label == "Overwritten")
+          next # we're not reading this tag
         
         # value data type
         end_of_spacer <- end_of_gap + length(units) + length(vs) + 8 # position after vs and spacer
@@ -152,6 +155,12 @@ IsodatContinuousFlowFile <- setRefClass(
                   offset = end_of_spacer) + 8
         value_mode <- parse_binary_data(rawcell[start_of_value-8], "binary")
         value_type <- parse_binary_data(rawcell[start_of_value-4], "binary")
+        
+        if (length(start_of_value) == 0)
+          stop("There was a problem trying to automatically parse the results table.\n",
+               "Can't find the start of value sequence for label '", label, "':\n",
+               parse_binary_data(rawcell, "binary", length = length(rawcell)))
+        
         type <- 
           if (value_mode == "01") "character"
         else if (value_mode == "02" && value_type == "08") "numeric"
@@ -194,7 +203,7 @@ IsodatContinuousFlowFile <- setRefClass(
           else if (type == "numeric") parse_binary_data(rawcell[(start_of_value):(start_of_value+8)], "double")
           else if (type == "integer") as.integer(parse_binary_data(rawcell[(start_of_value):(start_of_value+4)], "short"))
           else stop ("should never get here!")
-          key <- paste0(rawToChar(label[c(TRUE, FALSE)]), "\n")
+          key <- paste0(label, "\n")
           if (! (unit <- rawToChar(units[c(TRUE, FALSE)])) %in% c("", " "))
             key <- paste0(key, unit)
           if (! (vs <- rawToChar(vs[-c(1:4)][c(TRUE, FALSE)])) %in% c("", " ")) 
