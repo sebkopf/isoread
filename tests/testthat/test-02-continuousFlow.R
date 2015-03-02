@@ -47,7 +47,7 @@ test_that("Testing general Isodat Continous Flow File (.dxf)", {
   
   # data table test
   expect_equal(names(test$get_data_table()),
-               c("Component", "Start", "Rt", "End", "Nr.", "rIntensity 44", 
+               c("Component", "Start", "Rt", "End", "Ampl 44", "Ampl 45", "Ampl 46", "Nr.", "rIntensity 44", 
                  "rIntensity 45", "rIntensity 46", "rIntensity All", "Intensity 44", 
                  "Intensity 45", "Intensity 46", "Intensity All", "Sample Dilution", 
                  "rR 45N2O/44N2O", "rR 46N2O/44N2O", "Is Ref.?", "R 45N2O/44N2O", 

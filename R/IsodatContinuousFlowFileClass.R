@@ -98,21 +98,25 @@ IsodatContinuousFlowFile <- setRefClass(
       extract_sequence_line_info()
       
       ##### data table #####
+      out <- list()
+      
       # find first peak retention times (stupidly stored separately from the rest of the data)
       move_to_key("CGCPeakList")
-      skip(grepRaw("\x43\x47\x43\x50\x65\x61\x6B", # this is the "CGCPeak" key (too short to make it into the keys)
-                   rawdata, offset = pos) + 7 + 64 - pos)
-      start <- parse("double")
-      #bg1 <- parse("double") # not currently used
-      rt <- parse("double", skip = 12)
-      #amp1 <- parse("double") # not currently used
-      end <- parse("double", skip = 12)
+      # this is the "CGCPeak" key (too short to make it into the keys)
+      skip(grepRaw("\x43\x47\x43\x50\x65\x61\x6B", rawdata, offset = pos) + 7 + 64 - pos)
+      start_pos <- pos
+      start_binary <-  parse("binary", length = 8)
+      out$`Start\n[s]` <- parse("double", skip_first = -8)
+      #bg1 <- parse("double") # I think this is what's here, not currently used though
+      out$`Rt\n[s]` <- parse("double", skip_first = 12) 
+      out$`End\n[s]` <- parse("double", skip_first = 12)
       
-      # start of output list
-      out <- list(
-        `Start\n[s]` = start,
-        `Rt\n[s]` = rt,
-        `End\n[s]` = end)
+      # find the amplitudes from where the start retention times are
+      for (mass in sub("mass", "", masses)) {
+        pos <<- as.integer(grepRaw(gsub(" ", "\\\\x", paste0(" ", start_binary)), rawdata, offset = start_pos) + 28)
+        out[[paste0("Ampl ", mass, "\n[mV]")]] <- parse("double")
+        start_pos <- pos
+      }
       
       # all the data values
       rawtable <- rawdata[find_key("CEvalDataIntTransferPart", occ = 1, fix = T)$byteEnd:
@@ -163,14 +167,25 @@ IsodatContinuousFlowFile <- setRefClass(
           grepRaw(pattern, rawcell, offset = start_of_value + 8) +
           length(grepRaw(pattern, rawcell, offset = start_of_value + 8, value = TRUE))
         if (length(rt_start) > 0) {
-          start <- parse_binary_data(rawcell[(rt_start):(rt_start+8)], "double") # bg1 is right after this, currently not read
-          rt <- parse_binary_data(rawcell[(rt_start+20):(rt_start+28)], "double") # amp 1 is right after this, currently not read
-          end <- parse_binary_data(rawcell[(rt_start+40):(rt_start+48)], "double")
-          out[["Start\n[s]"]] <- c(out[["Start\n[s]"]], start)  
-          out[["Rt\n[s]"]] <- c(out[["Rt\n[s]"]], rt)  
-          out[["End\n[s]"]] <- c(out[["End\n[s]"]], end)  
+          out[["Start\n[s]"]] <- c(out[["Start\n[s]"]], 
+                                   parse_binary_data(rawcell[(rt_start):(rt_start+8)], "double"))  
+          out[["Rt\n[s]"]] <- c(out[["Rt\n[s]"]],
+                                parse_binary_data(rawcell[(rt_start+20):(rt_start+28)], "double") )  
+          out[["End\n[s]"]] <- c(out[["End\n[s]"]], 
+                                 parse_binary_data(rawcell[(rt_start+40):(rt_start+48)], "double"))  
+          
+          start_binary <-  parse_binary_data(rawcell[(rt_start):(rt_start+8)], "binary", length = 8)
+          
+          # find the amplitudes from where the start retention times are
+          value_pos <- 1L
+          for (mass in sub("mass", "", masses)) {
+            value_pos <- grepRaw(gsub(" ", "\\\\x", paste0(" ", start_binary)), rawcell, offset = value_pos) + 28
+            out[[paste0("Ampl ", mass, "\n[mV]")]] <- 
+              c(out[[paste0("Ampl ", mass, "\n[mV]")]],
+                parse_binary_data(rawcell[(value_pos):(value_pos+48)], "double"))
+          } 
         }
-        
+      
         # pull out value and store in list
         if (!is.na(type)) {
           value <- 
