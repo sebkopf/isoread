@@ -3,6 +3,10 @@
 #' @name IrmsData
 #' @aliases get_data_table, make_ggplot
 #' @field plotOptions holds information about default plotting options
+#' @field massData stores the raw mass data 
+#' @field dataTable stores the processed dataTable 
+#' @field dataTableColumns stores the definition of which columns exist in the
+#' data table and what their proper data types are
 IrmsData <- setRefClass(
   "IrmsData",
   fields = list (

@@ -2,7 +2,8 @@ context("Export")
 
 test_that("Testing single and multi file exports", {
   expect_that(test <- suppressMessages(
-    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), readChromData = TRUE, type = "H_CSIA")), is_a("IsodatFile"))
+    isoread(system.file("extdata", "6520__F8-5_5uL_isodat2.cf", package="isoread"), read_mass_data = TRUE, type = "H_CSIA")), 
+    is_a("IsodatHydrogenContinuousFlowFile"))
   expect_message(test$export_data(file = tempfile(), type = "chrom"), "chrom data exported")
   expect_message(test$export_data(file = tempfile(), type = "table"), "table data exported")
   

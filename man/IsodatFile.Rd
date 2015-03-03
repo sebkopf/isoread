@@ -7,6 +7,13 @@
 \description{
 Class representing an isodat binary file.
 }
+\section{Methods}{
+
+\describe{
+\item{\code{extract_measurement_info()}}{extracts the measurement information}
+
+\item{\code{extract_sequence_line_info()}}{extracts the sequence line information}
+}}
 \seealso{
 \link{BinaryFile}
 }

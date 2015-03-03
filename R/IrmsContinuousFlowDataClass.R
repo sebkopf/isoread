@@ -4,22 +4,19 @@ NULL
 #' IrmsContinuousFlowData reference class
 #' @name IrmsContinuousFlowData
 #' @exportClass IrmsContinuousFlowData
-#' @field chromData stores the chromatographic data (the actual mass and ratio data traces),
-#' @field peakTable stores the peak table (detected peaks and all their information)
-#' @field peakTableColumns stores the definition of which columns exist in the
-#' peak table and what their proper data types are
-#' @field peakTableKeys stores information about which columns correspond
-#' to key elements of the peakTable (e.g. the peak number, retention time
+#' @field massData stores the chromatographic data (the actual mass and ratio data traces), 
+#' inherited from IrmsDataClass
+#' @field dataTable stores the peak table (detected peaks and all their information),
+#' inherited from IrmsDataClass
+#' @field dataTableKeys stores information about which columns correspond
+#' to key elements of the dataTable (e.g. the peak number, retention time
 #' and compound name)
 #' @seealso \link{IrmsData}, \link{IrmsDualInletData}
 IrmsContinousFlowData <- setRefClass(
   "IrmsContinuousFlowData",
   contains = "IrmsData",
   fields = list (
-    chromData = 'data.frame', # chromatographic data
-    peakTable = 'data.frame', # table of peaks
-    peakTableColumns = 'data.frame', # the columns of the peak table   
-    peakTableKeys = 'character' # peak table column keys of importance
+    dataTableKeys = 'character' # peak table column keys of importance
     ),
   methods = list(
     
@@ -36,37 +33,27 @@ IrmsContinousFlowData <- setRefClass(
           apexMarker = list(on = TRUE, color="red"),
           edgeMarker = list(on = TRUE, color="blue"))
       
-      # template for peakTableColumn definitions
+      # template for dataTableColumn definitions
       # data - name of the column header for in the data
       # column - name of the column stored in the peak table
       # units - units of the data are in
       # type - which mode it is (character, numeric, logical, Ratio, Abundance, Delta)
       # show - whether to show this column in standard peak table outputs
-      peakTableColumns <<- data.frame(data = character(), column = character(), units = character(), type = character(), show = logical(), stringsAsFactors = FALSE)
+      dataTableColumns <<- data.frame(data = character(), column = character(), units = character(), type = character(), show = logical(), stringsAsFactors = FALSE)
       
-      # peak table keys
+      # peak table keys (with default values)
       # peak_nr = column that identifies the peak number
       # ref_peak = column that identifies reference peak column (T/F)
       # rt = column that holds the retention time
       # rt_start = column that holds the retention time at the start of the peak
       # rt_end = column that holds the retentio time at the end of the peak
       # name = column that holds the compound names
-      peakTableKeys <<- c(peak_nr = "", ref_peak = "", rt = "", rt_start = "", rt_end = "", name = "")
+      dataTableKeys <<- c(peak_nr = "Nr.", ref_peak = "Is Ref.?", rt = "Rt", rt_start = "Start", rt_end = "End", name = "Component")
     },
     
     # DATA CHECKS ============================
     
-    # FIXME: refactor such that check_chrom_data is renmaed directly to check_mass_data
-    check_mass_data = function(...) {
-      check_chrom_data(...)
-    },
-    
-    # FIXME: refactor such that check_data_table is renamed directly to check_peak_table
-    check_data_table = function(...) {
-      check_peak_table(...)
-    },
-    
-    check_chrom_data = function(masses = names(.self$plotOptions$masses), 
+    check_mass_data = function(masses = names(.self$plotOptions$masses), 
                                 ratios = names(.self$plotOptions$ratios), ..., warn = TRUE) {
       "checks the consistency of the chromatographic data, by default checks for 
       all masses and ratios" 
@@ -74,51 +61,51 @@ IrmsContinousFlowData <- setRefClass(
       if (length(missing <- setdiff(masses, names(.self$plotOptions$masses))) > 0)
         stop("Some mass traces ('", paste(missing, collapse = ", ") ,"') are not defined in plotOptions$masses.")
       
-      if (ncol(chromData) > 0 && length(missing <- setdiff(masses, names(chromData))) > 0)
+      if (ncol(massData) > 0 && length(missing <- setdiff(masses, names(massData))) > 0)
         stop("Some mass traces ('", paste(missing, collapse = ", ") ,"') are not available from the chromatographic data.")
       
       if (length(missing <- setdiff(ratios, names(.self$plotOptions$ratios))) > 0)
         stop("Some ratio traces ('", paste(missing, collapse = ", ") ,"') are not defined in plotOptions$ratios.")
       
-      if (ncol(chromData) > 0 && length(missing <- setdiff(ratios, names(chromData))) > 0)
+      if (ncol(massData) > 0 && length(missing <- setdiff(ratios, names(massData))) > 0)
         stop("Some ratio traces ('", paste(missing, collapse = ", ") ,"') are not available from the chromatographic data.")
       
-      if (ncol(chromData) == 0 && warn)
+      if (ncol(massData) == 0 && warn)
         warning("No chromatographic data currently loaded.")
     },
     
-    check_peak_table = function(..., warn = TRUE) {
+    check_data_table = function(..., warn = TRUE) {
       "checks the consistency of the peak table and converts data types if necessary" 
       
-      if (ncol(peakTable) > 0) {
+      if (ncol(dataTable) > 0) {
         
-        # check for all peakTable columns existence
-        if (length(missing <- setdiff(peakTableColumns$column, names(peakTable))) > 0) {
-          # for the missing columns, try to find and convert the original data column names to the peakTable names (easier to access)
-          ptc_indices <- which(peakTableColumns$column %in% missing) # indices of missing columns in peakTableColumns
-          if (length(missing <- setdiff(peakTableColumns$data[ptc_indices], names(peakTable))) > 0)
-            stop("Some data columns ('", paste(missing, collapse = ", ") ,"') do not exist in the loaded peakTable.")
+        # check for all dataTable columns existence
+        if (length(missing <- setdiff(dataTableColumns$column, names(dataTable))) > 0) {
+          # for the missing columns, try to find and convert the original data column names to the dataTable names (easier to access)
+          ptc_indices <- which(dataTableColumns$column %in% missing) # indices of missing columns in dataTableColumns
+          if (length(missing <- setdiff(dataTableColumns$data[ptc_indices], names(dataTable))) > 0)
+            stop("Some data columns ('", paste(missing, collapse = ", ") ,"') do not exist in the loaded dataTable.")
           
           # change original column names to new name 
-          pt_cols <- sapply(peakTableColumns$data[ptc_indices], function(i) which(names(peakTable) == i), simplify = TRUE)
-          names(peakTable)[pt_cols] <<- peakTableColumns$column[ptc_indices]
+          pt_cols <- sapply(dataTableColumns$data[ptc_indices], function(i) which(names(dataTable) == i), simplify = TRUE)
+          names(dataTable)[pt_cols] <<- dataTableColumns$column[ptc_indices]
         }
         
         # bring peak columns into right order
-        peakTable <<- peakTable[peakTableColumns$column]
+        dataTable <<- dataTable[dataTableColumns$column]
         
         # check for proper class and convert if necessary
-        if (any(types <- (sapply(peakTable, class, simplify=T) != peakTableColumns$type))) {
+        if (any(types <- (sapply(dataTable, class, simplify=T) != dataTableColumns$type))) {
           ptc_indices <- which(types) # indices of the columns to convert
           if (warn) {
             #FIXME: do we need this message? got a bit too annoying
-            #info <- paste0(peakTableColumns$column[ptc_indices], " (to ", peakTableColumns$type[ptc_indices], ")")
+            #info <- paste0(dataTableColumns$column[ptc_indices], " (to ", dataTableColumns$type[ptc_indices], ")")
             #message("Converting data types of peak table columns: ", paste0(info, collapse = ", "))
           }
             
           for (i in ptc_indices) {
-            data <- peakTable[[peakTableColumns$column[i]]]
-            data <- suppressWarnings(try(switch(peakTableColumns$type[i],
+            data <- dataTable[[dataTableColumns$column[i]]]
+            data <- suppressWarnings(try(switch(dataTableColumns$type[i],
                          "integer" = as.integer(data),
                          "character" = as.character(data),
                          "numeric" = as.numeric(data),
@@ -126,14 +113,14 @@ IrmsContinousFlowData <- setRefClass(
                          "Ratio" = ratio(as.numeric(data)), 
                          "Abundance" = abundance(as.numeric(data)),
                          "Delta" = delta(`2H` = as.numeric(data), major = "1H", ref = "VSMOW"), # FIXME this only really applies to hydrogencontinuousflowfileclass!
-                         stop("data type not supported: ", peakTableColumns$type[i])),
+                         stop("data type not supported: ", dataTableColumns$type[i])),
                   TRUE))
-            peakTable[[peakTableColumns$column[i]]] <<- data
+            dataTable[[dataTableColumns$column[i]]] <<- data
           }
         }
         
         # bring peak rows into right order (sorted by retention time)
-        peakTable[order(peakTable[[peakTableKeys["rt"]]]),] ->> peakTable
+        dataTable[order(dataTable[[dataTableKeys["rt"]]]),] ->> dataTable
                 
       } else if (warn)
         warning("No peak table data currently loaded.")
@@ -141,47 +128,42 @@ IrmsContinousFlowData <- setRefClass(
     
     # DATA RETRIEVAL ==============
     
-    # FIXME: refactor such that check_chrom_data is renmaed directly to check_mass_data
-    get_data_table = function(...){
-      get_peak_table(...)
-    },
-    
-    get_peak_table = function(type = c("ref", "data", "both")) {
+    get_data_table = function(type = c("ref", "data", "both")) {
       "retrieve the peak table"
       
       if (missing(type)) type <- "both"
       type <- match.arg(type)
       
-      if (ncol(peakTable) == 0) {
+      if (ncol(dataTable) == 0) {
         warning("No peak table data currently loaded.")
         return (NULL)
       }
       
       if (type == "ref") {
-        return (peakTable[peakTable[[peakTableKeys["ref_peak"]]] == TRUE, ])
+        return (dataTable[dataTable[[dataTableKeys["ref_peak"]]] == TRUE, ])
       } else if (type == "data") {
-        return (peakTable[peakTable[[peakTableKeys["ref_peak"]]] == FALSE, ])
+        return (dataTable[dataTable[[dataTableKeys["ref_peak"]]] == FALSE, ])
       } else {
-        return (peakTable)
+        return (dataTable)
       }
     },
     
     #' get data for masses
     #' @param masses which masses to retrieve, all defined ones by defaul
     #' @param melt whether to melt the data frame
-    #' @note consider storing the extra x units in the chromData but worries about the size of this
-    #' object keep me from storing extra information in chromData
+    #' @note consider storing the extra x units in the massData but worries about the size of this
+    #' object keep me from storing extra information in massData
     get_mass_data = function(masses = names(.self$plotOptions$masses), melt = FALSE) {
       "get the mass trace data for specific masses, can be provided in \\code{melt = TRUE} format
       for easy use in ggplot style plotting"
       
       # checks
-      if (nrow(chromData) == 0)
+      if (nrow(massData) == 0)
         stop("No chromatographic data available.")
-      check_chrom_data(masses = masses, ratios = c())
+      check_mass_data(masses = masses, ratios = c())
 
       # data
-      data <- subset(chromData, select = c("time", masses))
+      data <- subset(massData, select = c("time", masses))
       # introduce multiple x units
       for (i in seq_along(plotOptions$tunits$labels)) {
         data[[paste0("time.", plotOptions$tunits$labels[i])]] <- 
@@ -211,12 +193,12 @@ IrmsContinousFlowData <- setRefClass(
       for easy use in ggplot style plotting"
       
       # checks
-      if (nrow(chromData) == 0)
+      if (nrow(massData) == 0)
         stop("No chromatographic data available.")
-      check_chrom_data(masses = c(), ratios = ratios)
+      check_mass_data(masses = c(), ratios = ratios)
       
       # data
-      data <- subset(chromData, select = c("time", ratios))
+      data <- subset(massData, select = c("time", ratios))
       # introduce multiple x units
       for (i in seq_along(plotOptions$tunits$labels)) {
         data[[paste0("time.", plotOptions$tunits$labels[i])]] <- 
@@ -235,39 +217,39 @@ IrmsContinousFlowData <- setRefClass(
     get_peak_nr_by_rt = function(rts) {
       "find peak numbers (i.e. ids) by retention time(s), returns a vector of found peak numbers (integer(0) if none found)"
       
-      if (is.null(get_peak_table())) 
+      if (is.null(get_data_table())) 
         stop("can't search for peaks without a peak table")
       
       unlist(sapply(rts, function(rt) {
-        peakTable[peakTable[[peakTableKeys["rt_start"]]] <= rt & 
-                    rt <= peakTable[[peakTableKeys["rt_end"]]], peakTableKeys["peak_nr"], drop = T]
+        dataTable[dataTable[[dataTableKeys["rt_start"]]] <= rt & 
+                    rt <= dataTable[[dataTableKeys["rt_end"]]], dataTableKeys["peak_nr"], drop = T]
       }))
     },
     
     get_peak_nr_by_name = function(names) {
       "find peak numbers (i.e. ids) by name(s), returns a vector of found peak numbers (integer(0) if none found)"
       
-      if (is.null(get_peak_table())) 
+      if (is.null(get_data_table())) 
         stop("can't search for peaks without a peak table")
       
       unlist(sapply(names, function(name) {
-        peakTable[peakTable[[peakTableKeys["name"]]] == name, peakTableKeys["peak_nr"], drop = T]
+        dataTable[dataTable[[dataTableKeys["name"]]] == name, dataTableKeys["peak_nr"], drop = T]
       }))
     },
     
     #' @return returns the data frame of found peaks (0-row df if none found)
-    get_peak = function(peak_nr, select = names(peakTable)) {
+    get_peak = function(peak_nr, select = names(dataTable)) {
       "retrieve information for a peak in the peak table (identified by peak_nr), can specify which columns to retrieve
       with \\code{selec}, retrieves all columns by default"
       
-      if (is.null(get_peak_table())) 
+      if (is.null(get_data_table())) 
         stop("can't search for peaks without a peak table")
-      peakTable[peakTable[[peakTableKeys["peak_nr"]]] %in% peak_nr, select]
+      dataTable[dataTable[[dataTableKeys["peak_nr"]]] %in% peak_nr, select]
     },
     
     #' Get peaks by rt
     #' @param rts 
-    get_peak_by_rt = function(rts, select = names(peakTable)) {
+    get_peak_by_rt = function(rts, select = names(dataTable)) {
       "retrieve information for peak(s) in the peak table (identified by retention times)"
       peak_nrs <- get_peak_nr_by_rt(rts)
       get_peak(peak_nrs, select = select)
@@ -275,7 +257,7 @@ IrmsContinousFlowData <- setRefClass(
     
     #' Get peaks by name
     #' @param rts 
-    get_peak_by_name = function(names, select = names(peakTable)) {
+    get_peak_by_name = function(names, select = names(dataTable)) {
       "retrieve information for peak(s) in the peak table (identified by names)"
       peak_nrs <- get_peak_nr_by_name(names)
       get_peak(peak_nrs, select = select)
@@ -286,18 +268,18 @@ IrmsContinousFlowData <- setRefClass(
     #' @param ... - peak columns to change (only one value per attribute allowed!)
     set_peak = function(peak_nr, ...){
       
-      if (is.null(get_peak_table())) 
+      if (is.null(get_data_table())) 
         stop("can't change peaks without a peak table")
       
       attribs <- list(...)
       if (length(attribs) == 1L && is(attribs[[1]], "list"))
         attribs <- attribs[[1]]
       
-      if (any(! names(attribs) %in% names(peakTable)))
+      if (any(! names(attribs) %in% names(dataTable)))
         stop("not all attributes names are defined in the peak table")
       if (any(sapply(attribs, length) != 1))
         stop("multiple values supplied, only exactly one per attribute allowed")
-      peakTable[peakTable[[peakTableKeys["peak_nr"]]] %in% peak_nr, names(attribs)] <<- attribs
+      dataTable[dataTable[[dataTableKeys["peak_nr"]]] %in% peak_nr, names(attribs)] <<- attribs
     },
     
     #' set peak(s) columns by retention time
@@ -317,7 +299,7 @@ IrmsContinousFlowData <- setRefClass(
     set_ref_peaks = function(rts, set = TRUE, reevaluate = FALSE) {
       " Identify peaks (by their retention times) as reference peaks (or remove their status as a reference peak)"
       
-      set_peak_by_rt(rts, setNames(list(set), peakTableKeys["ref_peak"]))
+      set_peak_by_rt(rts, setNames(list(set), dataTableKeys["ref_peak"]))
       if (reevaluate)
         reevaluate_peak_table()
     },
@@ -333,15 +315,15 @@ IrmsContinousFlowData <- setRefClass(
       if (length(rts) != length(compounds))
         stop("not the same number of compounds and retention times supplied")
       map <- data.frame(rts, compounds, stringsAsFactors = F)
-      names(map) <- c(peakTableKeys["rt"], peakTableKeys["name"])
+      names(map) <- c(dataTableKeys["rt"], dataTableKeys["name"])
       map_peaks(map)
     },
     
     #' Map peak(s)
     #' 
     #' Add information to peaks by mapping properties from a data frame
-    #' that contains at least the defined \code{peakTableKeys['peak_nr']} or 
-    #' \code{peakTableKeys['rt']} as a column. Additional columns (other than peak
+    #' that contains at least the defined \code{dataTableKeys['peak_nr']} or 
+    #' \code{dataTableKeys['rt']} as a column. Additional columns (other than peak
     #' nr and retention time) are mapped
     #' to the relevant peaks if they correspond to existing columns, otherwise
     #' they are disregarded with a warning.
@@ -360,22 +342,22 @@ IrmsContinousFlowData <- setRefClass(
       Note: make sure to have the data.frame that is passed in set with
       \\code{stringsAsFactors = F} (usually the desired setting for the mapping)"
       
-      if (is.null(get_peak_table())) 
+      if (is.null(get_data_table())) 
         stop("can't map peaks without a peak table")
       
-      if (peakTableKeys['peak_nr'] %in% names(map)) {
+      if (dataTableKeys['peak_nr'] %in% names(map)) {
         # found peak nrs
-        nrs <- as.list(map[[peakTableKeys['peak_nr']]])
-      } else if (peakTableKeys['rt'] %in% names(map)) {
-        nrs <- sapply(map[[peakTableKeys['rt']]], function(rt) list(get_peak_nr_by_rt(rt))) 
+        nrs <- as.list(map[[dataTableKeys['peak_nr']]])
+      } else if (dataTableKeys['rt'] %in% names(map)) {
+        nrs <- sapply(map[[dataTableKeys['rt']]], function(rt) list(get_peak_nr_by_rt(rt))) 
       } else {
-        stop ("neither '", peakTableKeys['peak_nr'], "' or '", peakTableKeys['rt'], "' defined in the map. ",
+        stop ("neither '", dataTableKeys['peak_nr'], "' or '", dataTableKeys['rt'], "' defined in the map. ",
               "not clear what to identify peaks by")
       }
       
-      columns <- names(map)[!names(map) %in% c(peakTableKeys['peak_nr'], peakTableKeys['rt'])]
-      existing <- intersect(columns, names(peakTable))
-      ignored <- setdiff(columns, names(peakTable))
+      columns <- names(map)[!names(map) %in% c(dataTableKeys['peak_nr'], dataTableKeys['rt'])]
+      existing <- intersect(columns, names(dataTable))
+      ignored <- setdiff(columns, names(dataTable))
       if (length(ignored > 0)) 
         warning("ignoring columns in the map not found in the peak table: ", paste(ignored, collapse = ", "))
       
@@ -383,10 +365,10 @@ IrmsContinousFlowData <- setRefClass(
       if (length(existing) > 0) {
         for (i in 1:nrow(map)) {
           if (length(nrs[[i]]) == 0) 
-            message("no peak found at retention time ", map[i, peakTableKeys['rt']], 
+            message("no peak found at retention time ", map[i, dataTableKeys['rt']], 
                     " (map entry: ", paste(map[i, ], collapse = ", "), ")") # used to be warning!
           else if (length(nrs[[i]]) > 1) 
-            message("more than one peak found at retention time ", map[i, peakTableKeys['rt']], 
+            message("more than one peak found at retention time ", map[i, dataTableKeys['rt']], 
                     " (map entry: ", paste(map[i, ], collapse = ", "), ")") # used to be warning!
           set_peak(nrs[[i]], as.list(map[i, existing, drop = F]))
         }
@@ -408,7 +390,7 @@ IrmsContinousFlowData <- setRefClass(
     #' @param ylab = y axis label
     #' @param title = title of the plot
     #' @param data = peak table data (by default the whole peak table)
-    plot_peak_table = function(y = NULL, ylab = "", title = "", data = get_peak_table()) {
+    plot_data_table = function(y = NULL, ylab = "", title = "", data = get_data_table()) {
       "Plot the data points in the peak table
       
       #' @param y = expression which data to plot (will be evaluated in context of the data frame)
@@ -419,10 +401,9 @@ IrmsContinousFlowData <- setRefClass(
        
       #' @param data = peak table data (by default the whole peak table)
       "
-      
-      compounds <- sapply(data[[peakTableKeys['name']]], 
+      compounds <- sapply(data[[dataTableKeys['name']]], 
                           function(i) if (nchar(i) > 0 && i != " - ") paste(i, "\n") else "")
-      data$.labels = paste0(compounds, "RT: ", data[[peakTableKeys['rt']]], " (#", data[[peakTableKeys['peak_nr']]], ")")
+      data$.labels = paste0(compounds, "RT: ", data[[dataTableKeys['rt']]], " (#", data[[dataTableKeys['peak_nr']]], ")")
       data$.x <- 1:nrow(data)
       
       # aesthetics:
@@ -438,14 +419,18 @@ IrmsContinousFlowData <- setRefClass(
     
     #' Make a ggplot of the references in the peak table
     plot_refs = function(y, ylab = "", title = "references") {
-      "plot the data of the reference peaks, see \\code{plot_peak_table} for details on syntax"
-      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "ref")))
+      if (missing(y))
+        stop("Need to pass in what to plot on the y axis!")
+      "plot the data of the reference peaks, see \\code{plot_data_table} for details on syntax"
+      do.call(.self$plot_data_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "ref")))
     },
     
     #' Make a ggplot of the data peaks in the peak table
     plot_data = function(y, ylab = "", title = "data peaks") {
-      "plot the data of the actual sample peaks, see \\code{plot_peak_table} for details on syntax"
-      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "data")))
+      "plot the data of the actual sample peaks, see \\code{plot_data_table} for details on syntax"
+      if (missing(y))
+        stop("Need to pass in what to plot on the y axis!")
+      do.call(.self$plot_data_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "data")))
     },
     
     #' Plot the data (both masses and ratios) - much faster than ggplot but not as versatile
@@ -471,9 +456,12 @@ IrmsContinousFlowData <- setRefClass(
      
     #' @param tunits time units, as defined in tunits (currently either 's' or 'min'), takes the one set in plotOptions as default      
       "
-      layout(matrix(c(1,2), byrow=TRUE, ncol=1))
-      plot_ratios(tlim = tlim, ylim = ratio_ylim, ratios = ratios, tunits = tunits)
-      plot_masses(tlim = tlim, ylim = mass_ylim, masses = masses, tunits = tunits)
+      if (!is.null(ratios) && !is.null(masses))
+        layout(matrix(c(1,2), byrow=TRUE, ncol=1))
+      if (!is.null(ratios))
+        plot_ratios(tlim = tlim, ylim = ratio_ylim, ratios = ratios, tunits = tunits)
+      if (!is.null(masses))
+        plot_masses(tlim = tlim, ylim = mass_ylim, masses = masses, tunits = tunits)
     },
     
     #' Plot the masses (this if much faster than ggplot but not as versatile)
@@ -607,11 +595,11 @@ IrmsContinousFlowData <- setRefClass(
         labs(x = paste0(plotOptions$labels$x, " [", tunits, "]"), y = "", colour = "Trace")
       
       # plot numbers and references (add to normal plot and introduce as plotOption)
-      if (!is.null(table <- get_peak_table()) && nrow(table) > 0) {
-        table$.label <- paste0(table[[peakTableKeys['peak_nr']]], ifelse(table[[peakTableKeys['ref_peak']]], "*", ""))      
+      if (!is.null(table <- get_data_table()) && nrow(table) > 0) {
+        table$.label <- paste0(table[[dataTableKeys['peak_nr']]], ifelse(table[[dataTableKeys['ref_peak']]], "*", ""))      
         
         p <- p + geom_text(data = mutate(table, .y = 0, panel = plotOptions$labels$ymasses), 
-                ggplot2::aes_string(x = peakTableKeys['rt'], y = ".y", label = ".label", colour = NULL), size=6, show_guide = F)
+                ggplot2::aes_string(x = dataTableKeys['rt'], y = ".y", label = ".label", colour = NULL), size=6, show_guide = F)
       }
       
       if (is.null(masses))
@@ -646,16 +634,16 @@ IrmsContinousFlowData <- setRefClass(
       
       # data table (split in two)
       if (table) {
-        cols_per_row <- ceiling((ncol(peakTable) + 4)/2)
+        cols_per_row <- ceiling((ncol(dataTable) + 4)/2)
         g1 <- tableGrob(
-          get_peak_table()[1:cols_per_row], 
+          get_data_table()[1:cols_per_row], 
           show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
           gpar.coltext = gpar(fontsize=12, fontface="bold"), 
           gpar.colfill = gpar(fill=NA,col=NA), 
           gpar.rowfill = gpar(fill=NA,col=NA), h.even.alpha = 0)
         g2 <- tableGrob(
-          cbind(get_peak_table()[peakTableKeys[c("peak_nr", "ref_peak", "rt", "name")]],
-                get_peak_table()[(1+cols_per_row):ncol(peakTable)]), 
+          cbind(get_data_table()[dataTableKeys[c("peak_nr", "ref_peak", "rt", "name")]],
+                get_data_table()[(1+cols_per_row):ncol(dataTable)]), 
           show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
           gpar.coltext = gpar(fontsize=12, fontface="bold"), 
           gpar.colfill = gpar(fill=NA,col=NA), 
@@ -727,9 +715,9 @@ IrmsContinousFlowData <- setRefClass(
       
       message("Creating ", type, " export for ", .self$filename, " ...")
       if (type == "table")
-        write.table(get_peak_table(), file, sep = sep, row.names = FALSE, col.names = headers, ...)
+        write.table(get_data_table(), file, sep = sep, row.names = FALSE, col.names = headers, ...)
       else if (type == "chrom")
-        write.table(chromData, file, sep = sep, row.names = FALSE, col.names = headers, ...)
+        write.table(massData, file, sep = sep, row.names = FALSE, col.names = headers, ...)
       message(type, " data exported to ", file)
     }
     

@@ -5,7 +5,7 @@ test_that("Testing general dual inlet binary file",{
   expect_that(test <- suppressMessages(isoread(system.file("extdata", "dual_inlet_clumped_carbonate.did", package="isoread"), type = "DI")), is_a("IsodatDualInletFile"))
   
   # check key number
-  expect_that({test$load(); nrow(test$keys)}, equals(1842))
+  expect_that({test$load(); nrow(test$keys)}, equals(1823))
   
   # check presence of certain keys
   test_keys <- c("CTraceInfo", "CPlotRange", "CDualInletRawData", "DualInlet RawData Standard Block",
@@ -17,7 +17,7 @@ test_that("Testing general dual inlet binary file",{
   test$set_plot_options(masses = list(mass42 = list(label = "Mass 42")))
   expect_error(test$check_mass_data(), "Not all masses appear to be recorded in this file")
   test$set_plot_options(masses = list(mass42 = NULL))
-  expect_that({test$process(); test$get_mass_data()}, equals(structure(list(
+  expect_that({test$data <- list(); test$process(); test$get_mass_data()}, equals(structure(list(
     analysis = c("Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Sample", "Sample", "Sample", "Sample", "Sample", "Sample", "Sample", "Standard"), 
     cycle = c(1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 0), 
     mass44 = c(15941.1363271265, 15933.5415417438, 15916.5753680181, 15901.6242158319, 15896.0021519182, 15884.6349693404, 15875.8903911327, 15955.1761050668, 15945.6432073637, 15925.9044562907, 15911.0955861597, 15909.8304295061, 15912.5607067829, 15914.033518328, 15946.4199904763),

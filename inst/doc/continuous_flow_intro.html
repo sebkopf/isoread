@@ -220,7 +220,7 @@ kable(head(file$get_mass_data(), n = 10))</code></pre>
 <h2>Peak table</h2>
 <p>The table of peaks detected by isodat during the analysis or added by the user later on are also directly accessible. The complete set of 29 columns is available through <strong>isoread</strong>, here a small subset of key components:</p>
 <pre class="r"><code>kable(
-subset(file$get_peak_table(), select = c(&quot;Peak Nr.&quot;, &quot;Status&quot;, 
+subset(file$get_data_table(), select = c(&quot;Peak Nr.&quot;, &quot;Status&quot;, 
     &quot;Ref. Peak&quot;, &quot;Component&quot;, &quot;Rt&quot;, &quot;Start&quot;, &quot;End&quot;, &quot;Ampl. 2&quot;, 
     &quot;d 2H/1H&quot;)))</code></pre>
 <table>

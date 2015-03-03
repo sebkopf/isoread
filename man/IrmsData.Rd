@@ -13,6 +13,13 @@ IrmsData reference class
 
 \describe{
 \item{\code{plotOptions}}{holds information about default plotting options}
+
+\item{\code{massData}}{stores the raw mass data}
+
+\item{\code{dataTable}}{stores the processed dataTable}
+
+\item{\code{dataTableColumns}}{stores the definition of which columns exist in the
+data table and what their proper data types are}
 }}
 \section{Methods}{
 

@@ -15,3 +15,7 @@ tmp/*
 
 # Ignore plots created by testing functionality
 tests/testthat/*.pdf
+
+# Ignore cvs tests and key mapping helper files
+*.csv
+inst/extdata/*.xlsx

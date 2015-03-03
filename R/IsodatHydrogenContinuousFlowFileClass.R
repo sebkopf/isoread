@@ -1,6 +1,6 @@
-#' @include IsodatFileClass.R
-#' @include IrmsContinuousFlowDataClass.R
+#' @include IsodatContinuousFlowFileClass.R
 NULL
+
 
 #' H-CSIA DataClass
 #' 
@@ -9,24 +9,17 @@ NULL
 #' version is 2.0 for chromatographic and peak table data and isodat version 2.5 and
 #' 3.0 for chromatographic data only).
 #' 
-#' This class is derived from \link{IrmsContinuousFlowData} which defines a number
-#' of useful plotting, export and data access methods. This class also derived
-#' \link{BinaryFile} which provides functionality for interacting with the
-#' underlying \link{IsodatFile}.
+#' This class is derived indirectly from \link{IrmsContinuousFlowData} which defines a 
+#' number of useful plotting, export and data access methods. 
 #' 
 #' @name IsodatHydrogenContinuousFlowFile
 #' @exportClass IsodatHydrogenContinuousFlowFile
-#' @seealso \link{BinaryFile}, \link{IsodatFile}, \link{IrmsContinuousFlowData}, \link{IrmsData}
+#' @seealso \link{BinaryFile}, \link{IsodatFile}, \link{IsodatContinuousFlowFile}, \link{IrmsContinuousFlowData}, \link{IrmsData}
 IsodatHydrogenContinuousFlowFile <- setRefClass(
   "IsodatHydrogenContinuousFlowFile",
-  contains = c("IsodatFile", "IrmsContinuousFlowData"),
+  contains = "IsodatContinuousFlowFile",
   fields = list (),
   methods = list(
-    #' initialize
-    initialize = function(...) {
-      callSuper(...)
-      init_irms_data()
-    },
     
     #' initialize irms data container
     init_irms_data = function(){
@@ -42,7 +35,7 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
         )
       
       # peak table definition
-      peakTableColumns <<- data.frame(
+      dataTableColumns <<- data.frame(
         data = c('Filename', 'Peak Nr.', 'Ref. Peak', 'Status', 'Component', 'Formula', 'Master Peak', 'Ref. Name', 
                  'Start\n[s]', 'Rt\n[s]', 'End\n[s]', 'Width\n[s]', 'Ampl. 2\n[mV]', 'Ampl. 3\n[mV]', 'BGD 2\n[mV]', 'BGD 3\n[mV]', 
                  'Area All\n[Vs]', 'Area 2\n[Vs]', 'Area 3\n[Vs]', 'rArea All\n[mVs]', 'rArea 2\n[mVs]', 'rArea 3\n[mVs]', 
@@ -52,13 +45,13 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
                  rep("numeric", 14),
                  "Ratio", "Ratio", "Delta", "Delta", "numeric", "Ratio", "Delta", "numeric", 'numeric'),
         show = TRUE, stringsAsFactors = FALSE)
-      peakTableColumns <<- mutate(
-        peakTableColumns,
+      dataTableColumns <<- mutate(
+        dataTableColumns,
         column = sub('^([^\n]+).*', '\\1', data), # pull out column names from the data names
         units = sub('\n', ' ', sub('^[^\n]+(\n)?(.*)$', '\\2', data))) # pull out units from the data names
       
       # key peaks
-      peakTableKeys <<- c(peak_nr = "Peak Nr.", ref_peak = "Ref. Peak", 
+      dataTableKeys <<- c(peak_nr = "Peak Nr.", ref_peak = "Ref. Peak", 
                           rt = "Rt", rt_start = "Start", rt_end = "End",
                           name = "Component")
     },
@@ -76,9 +69,10 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
     }, 
     
     #' expand parent procdess function specifically for hydrogen continuous flow data
-    #' @param readChromData whether to read chromatographic mass+ratio data (can be a lot of data)
-    process = function(readChromData = TRUE, ...) {
-      callSuper()
+    #' NOTE: this does NOT callSuper because the hydrogen file (.cf) seems very different from
+    #' generic IsodatContinuousFlowFile (.dxf)
+    #' @param read_mass_data whether to read chromatographic mass+ratio data (can be a lot of data)
+    process = function(read_mass_data = TRUE, ...) {
       
       # process header
       move_to_key("CRawDataScanStorage")
@@ -88,7 +82,7 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       parse("short", id = "n_ions", skip_first = 29) 
       
       # read mass2/mass3 data trace
-      if (readChromData) {
+      if (read_mass_data) {
         parse_array(
           types = c(time = "float", mass2 = "double", mass3 = "double"), 
           n = data$n_measurements, id = "mass", skip_first = 0)
@@ -106,7 +100,7 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       parse("short", id = "n_ratios", skip_first = 18)
       
       # read ratio data
-      if (readChromData) {
+      if (read_mass_data) {
         parse_array(
           types = c(time = "float", ratio_3o2 = "double"), 
           n = data$n_ratio_measurements, id = "ratio", skip_first = 0)
@@ -121,12 +115,12 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       data$ASprogram <<- find_key("Internal")$value
       
       # reorganize data, move to IrmsDataClass structure
-      if (readChromData) {
-        chromData <<- cbind(data$mass, data$ratio['ratio_3o2'])
+      if (read_mass_data) {
+        massData <<- cbind(data$mass, data$ratio['ratio_3o2'])
         data$mass <<- data$ratio <<- NULL
       }
       
-      # peak table (FIXME: this could use some refactoring)      
+      # peak table      
       rawtable <- rawdata[subset(keys, value=="CPkDataListBox")$byteEnd:subset(keys, value=="CGCPeakList")$byteStart]
       arials <- grepRaw("([Arial][^\u0020-\u007e]){5}", rawtable, all=TRUE)
       #FIXME: newer versions of isodat (2.5 and 3.1 don't have this business, just 18 bytes between each label!)
@@ -174,17 +168,10 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
             `Peak Nr.` = as.integer(sub(peakNrPattern, '\\1', `Peak Nr.`))) # peak number as integer
           
           # store peak table data
-          peakTable <<- df
+          dataTable <<- df
         }
       } 
       
-    },
-
-    cleanup = function(clean_chrom_data = FALSE, ...) {
-      # FIXME, this should ideally go into IrmsContinuousFlowDataClass but the method comes from BinaryFile$cleanup ...
-      callSuper(...)
-      if (clean_chrom_data)
-        chromData <<- data.frame()
     },
     
     # COMPUTATION ================
@@ -211,7 +198,7 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       title = "Variation in reference peaks"){
       
       # FIXME not sure how to call super from here to avoid this code replication
-      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "ref")))
+      do.call(.self$plot_data_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "ref")))
     },
     
     #' Make a ggplot of the data
@@ -221,25 +208,8 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
       y = `d 2H/1H`, 
       ylab = "dD [permil] vs VSMOW", 
       title = "Data peaks"){
-      do.call(.self$plot_peak_table, list(y = substitute(y), ylab = ylab, title = title, data = get_peak_table(type = "data")))
-    },
-    
-    get_info = function(show = c()) {
-      info <- rbind(callSuper(), data.frame(Property = "Peaks in peak table", Value = as.character(nrow(peakTable))))
-      if (length(show) == 0)
-        info
-      else
-        info[na.omit(match(show, info$Property)),]
-    },
-    
-    #' custom show function to display roughly what data we've got going
-    show = function() {
-      cat("\nShowing summary of", class(.self), "\n")
-      callSuper()
-      cat("\n\nData (first couple of rows):\n")
-      print(head(chromData))
-      cat("\nPeak Table:\n")
-      print(peakTable)
+      do.call(.self$plot_data_table, list(y = substitute(y), ylab = ylab, title = title, data = get_data_table(type = "data")))
     }
+
   )
 )

@@ -30,7 +30,8 @@ NULL
 #' \itemize{
 #'    \item{'DI'}{ = instance(s) of a basic \code{\link{IsodatDualInletFile}} which implements \code{\link{IrmsDualInletData}}}.
 #'    \item{'CO2_CLUMPED'}{ = instance(s) of the more specialized \code{\link{IsodatClumbedCO2File}} which extends \code{\link{IsodatDualInletFile}}}.
-#'    \item{'H_CSIA'}{ = instance(s) of \code{\link{IsodatHydrogenContinuousFlowFile}} which implements \code{\link{IrmsContinuousFlowData}}}.
+#'    \item{'CFLOW'}{ = instance(s) of a basic \code{\link{IsodatContinuousFlowFile}} which extends \code{\link{IsodatContinuousFlowData}}}.
+#'    \item{'H_CSIA'}{ = instance(s) of \code{\link{IsodatHydrogenContinuousFlowFile}} which extends \code{\link{IsodatContinuousFlowFile}}}.
 #' }
 #' If file names start with a number,
 #' then the number is used as key in the list, otherwise the whole filename is the key.
@@ -39,6 +40,7 @@ NULL
 isoread <- function(files, type, load_chroms = T, ...) {
   typeClass <- switch(
     type,
+    CFLOW = 'IsodatContinuousFlowFile',
     H_CSIA = 'IsodatHydrogenContinuousFlowFile',
     DI = 'IsodatDualInletFile',
     CO2_CLUMPED = 'IsodatClumpedCO2File',
@@ -108,7 +110,7 @@ map_peaks <- function(iso, map, startRow = 3, libfile = NULL, colClasses = c("nu
   
   # apply map
   invisible(sapply(c(iso), function(i) {
-    message("Mapping ", i$filename, " which has ", nrow(i$get_peak_table()), " peaks (mapping file has ", nrow(map) ,").")
+    message("Mapping ", i$filename, " which has ", nrow(i$get_data_table()), " peaks (mapping file has ", nrow(map) ,").")
     i$map_peaks(map[keys])
   }))
 }
@@ -146,7 +148,7 @@ reload <- function(iso, remap_peaks = TRUE, load_chroms = TRUE) {
   if (!all(sapply(types, function(i) extends(i, "IrmsContinuousFlowData"))))
     stop("not an IrmsContinuousFlowData object, don't know how to relaod")
   
-  maps <- sapply(iso, function(i) list(subset(i$get_peak_table(), Component != " - ", select = c("Rt", "Component", "Formula"))))
+  maps <- sapply(iso, function(i) list(subset(i$get_data_table(), Component != " - ", select = c("Rt", "Component", "Formula"))))
   
   files <- vapply(iso, function(i) file.path(i$filepath, i$filename), FUN.VALUE = character(1))
   
@@ -177,9 +179,9 @@ reload <- function(iso, remap_peaks = TRUE, load_chroms = TRUE) {
 #' @export
 quickview <- function(iso, reload = FALSE,
                       show = c("Peak Nr.", "Status", "Ref. Peak", "Component", "Rt", "Start", "End", "Ampl. 2", "d 2H/1H")) {
-  if (reload || nrow(iso$chromData) == 0) 
+  if (reload || nrow(iso$massData) == 0) 
     iso <- reload(iso, remap_peaks = T, load_chroms = T)
   print(iso$make_ggplot(ratios=c()))
-  print(iso$get_peak_table()[show])
+  print(iso$get_data_table()[show])
   invisible(iso)
 }

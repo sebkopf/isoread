@@ -30,6 +30,7 @@ Collate:
     'IsodatFileClass.R'
     'IsodatDualInletFileClass.R'
     'IsodatClumpedCO2FileClass.R'
+    'IsodatContinuousFlowFileClass.R'
     'IsodatHydrogenContinuousFlowFileClass.R'
     'export.R'
     'isoread.R'
