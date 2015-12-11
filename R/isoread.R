@@ -25,6 +25,8 @@ NULL
 #'    \item{'H_CSIA'}{ = compound specific IRMS data for hydrogen isotopes}
 #' }
 #' @param load_chroms whether to keep the chromatograms in the objects (otherwise only peak tables are kept)
+#' @param quiet whether to output status messages [default FALSE], switch to TRUE to turn off messages (same effect as 
+#'    surrounding the call with suppressMessages). Warnings will not be turned off.
 #' @param ... parameters passed to the \code{load} and \code{process} functions of the IsodatFile objects
 #' @return List of file \code{type} specific objects. 
 #' \itemize{
@@ -37,7 +39,7 @@ NULL
 #' then the number is used as key in the list, otherwise the whole filename is the key.
 #' If there is only one file, the object is returned directly.
 #' @export
-isoread <- function(files, type, load_chroms = T, ...) {
+isoread <- function(files, type, load_chroms = T, quiet = F, ...) {
   typeClass <- switch(
     type,
     CFLOW = 'IsodatContinuousFlowFile',
@@ -49,7 +51,8 @@ isoread <- function(files, type, load_chroms = T, ...) {
   files <- as.list(files)
   names(files) <- sapply(files, function(i) sub('^(\\d+).*', '\\1', basename(i)), simplify=T) 
   objs <- lapply(files, function(file) {
-    message("Reading file ", file)
+    if (!quiet)
+      message("Reading file ", file)
     obj <- new(typeClass, file)
     obj$load(...)
     obj$process(...)
