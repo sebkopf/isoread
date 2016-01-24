@@ -12,6 +12,9 @@ NULL
 #' @include IsodatHydrogenContinuousFlowFileClass.R
 #' @include IsodatDualInletFileClass.R
 #' @include IsodatClumpedCO2FileClass.R
+#' @importFrom reshape2 melt
+#' @importFrom plyr ldply ddply mutate
+#' @importFrom isotopia ratio abundance delta
 NULL
 
 #' Read isotope data files
@@ -91,20 +94,24 @@ isoread_folder <- function(folder, type, extension = '.cf', ...) {
 #' if provided, will attempt to merge the components in the mapping file with the library
 #' information for additional details on Formula and other compound properties
 #' @export
-map_peaks <- function(iso, map, startRow = 3, libfile = NULL, colClasses = c("numeric", "character", "character"), ...) {
-  library(xlsx)
+map_peaks <- function(iso, map, startRow = 3, libfile = NULL, colClasses = c("numeric", "text", "text"), ...) {
+  
+  if (!requireNamespace("readxl", quietly = TRUE)) {
+    stop("The package 'readxl' is needed for this function to work. Please install it.", call. = FALSE)
+  }
+  
   types <- sapply(c(iso), class)
   if (!all(sapply(types, function(i) extends(i, "IrmsContinuousFlowData"))))
     stop("not an IrmsContinuousFlowData object, don't know how to apply a map to it")
   
   if (!is(map, "data.frame"))
-    map <- read.xlsx2(map, 1, startRow = startRow, stringsAsFactors = F, header=TRUE, colClasses = colClasses, ...) 
+    map <- readxl::read_excel(map, 1, skip = startRow - 1, col_types = colClasses, ...) 
   keys <- c("Rt", "Component")
   if (!all(keys %in% names(map)))
     stop("Missing either Rt or Component column, don't know what to do with this map")
   
   if (!is.null(libfile)) {
-    lib <- read.xlsx2(libfile, 1, startRow = 3, stringsAsFactors = F, header=TRUE, colClasses = c("character"), ...) 
+    lib <- readxl::read_excel(libfile, 1, skip = 2, ...) 
     map <- merge(map, lib, by.x = "Component", by.y = "Component", all.x = TRUE)
   }
   

@@ -193,7 +193,7 @@ IsodatHydrogenContinuousFlowFile <- setRefClass(
     #' of how close the reference peaks are to
     #' each other.
     plot_refs = function(
-      y = to_delta(`rR 3H2/2H2`, mean(`rR 3H2/2H2`)), 
+      y = isotopia::to_delta(`rR 3H2/2H2`, mean(`rR 3H2/2H2`)), 
       ylab = "dD [permil] vs mean ratio", 
       title = "Variation in reference peaks"){
       
