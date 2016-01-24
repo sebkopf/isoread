@@ -635,41 +635,40 @@ IrmsContinousFlowData <- setRefClass(
       # data table (split in two)
       if (table) {
         cols_per_row <- ceiling((ncol(dataTable) + 4)/2)
-        g1 <- tableGrob(
+        g1 <- gridExtra::tableGrob(
           get_data_table()[1:cols_per_row], 
-          show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
-          gpar.coltext = gpar(fontsize=12, fontface="bold"), 
-          gpar.colfill = gpar(fill=NA,col=NA), 
-          gpar.rowfill = gpar(fill=NA,col=NA), h.even.alpha = 0)
-        g2 <- tableGrob(
+          theme = gridExtra::ttheme_minimal(), 
+          rows = NULL) 
+#           show.rownames=FALSE, gpar.coretext = grid::gpar(fontsize=10), 
+#           gpar.coltext = grid::gpar(fontsize=12, fontface="bold"), 
+#           gpar.colfill = grid::gpar(fill=NA,col=NA), 
+#           gpar.rowfill = grid::gpar(fill=NA,col=NA), h.even.alpha = 0)
+        g2 <- gridExtra::tableGrob(
           cbind(get_data_table()[dataTableKeys[c("peak_nr", "ref_peak", "rt", "name")]],
                 get_data_table()[(1+cols_per_row):ncol(dataTable)]), 
-          show.rownames=FALSE, gpar.coretext = gpar(fontsize=10), 
-          gpar.coltext = gpar(fontsize=12, fontface="bold"), 
-          gpar.colfill = gpar(fill=NA,col=NA), 
-          gpar.rowfill = gpar(fill=NA,col=NA), h.even.alpha = 0)
+          theme = gridExtra::ttheme_minimal(), 
+          rows = NULL) 
         
         # combine the whole ting
+        grid.arrange(g1, g2, ncol=1,
+                  top=paste0("\nIsodat binary read of ", filename, " (analyzed on ", creation_date, ")"))
+                            # NOTE: these are specific to the hydrogen case, implement more universally!
+                            #  ", H3 factor: ", round(data$`H3 factor`, digits=4),
+                            #  "\nGC: ", data$GCprogram, 
+                            #  " // AS: ", data$ASprogram, 
+                            #  " // Method: ", data$MSprogram))
         
-        gall <- arrangeGrob(g1, g2, ncol=1,
-                  main=paste0("\nIsodat binary read of ", filename, " (analyzed on ", creation_date, ")",
-                              ", H3 factor: ", round(data$H3factor, digits=4),
-                              "\nGC: ", data$GCprogram, 
-                              " // AS: ", data$ASprogram, 
-                              " // Method: ", data$MSprogram))
-        
-        print(gall)
       }
       
       # plots (data, referenes, peak table)
       if (plots) {
-        grid.newpage()
-        pushViewport(viewport(layout = grid.layout(2, 2)))
+        grid::grid.newpage()
+        grid::pushViewport(grid::viewport(layout = grid::grid.layout(2, 2)))
         print(make_ggplot() + 
                 labs(title = paste0("Isodat binary read of ", filename, " (analyzed on ", creation_date, ")")), 
-              vp = viewport(layout.pos.row = 1, layout.pos.col = 1:2))
-        print(plot_refs(), vp = viewport(layout.pos.row = 2, layout.pos.col = 1))
-        print(plot_data(), vp = viewport(layout.pos.row = 2, layout.pos.col = 2))
+              vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 1:2))
+        print(plot_refs(), vp = grid::viewport(layout.pos.row = 2, layout.pos.col = 1))
+        print(plot_data(), vp = grid::viewport(layout.pos.row = 2, layout.pos.col = 2))
       }
       
       dev.off()

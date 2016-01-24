@@ -40,10 +40,8 @@ IrmsData <- setRefClass(
       dataTableColumns <<- data.frame(data = character(), column = character(), units = character(), type = character(), show = logical(), stringsAsFactors = FALSE)
     },
     
-    #' @example setSettings(a=5, b='test', ...)
-    #' @example setSettings(list(a=5, b='test', ...))
     set_plot_options = function(...) {
-      "set plot options"
+      "set plot options, e.g.: \\code{set_plot_options(labels = list(xmasses = 'Cycle', ymasses = 'Signal [mV]'))}"
       
       # if the first argument is an unnamed list then just use this list
       if ( nargs() == 1L && is.list(..1) &&
