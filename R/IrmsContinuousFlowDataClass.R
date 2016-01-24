@@ -599,7 +599,7 @@ IrmsContinousFlowData <- setRefClass(
         table$.label <- paste0(table[[dataTableKeys['peak_nr']]], ifelse(table[[dataTableKeys['ref_peak']]], "*", ""))      
         
         p <- p + geom_text(data = mutate(table, .y = 0, panel = plotOptions$labels$ymasses), 
-                ggplot2::aes_string(x = dataTableKeys['rt'], y = ".y", label = ".label", colour = NULL), size=6, show_guide = F)
+                ggplot2::aes_string(x = dataTableKeys['rt'], y = ".y", label = ".label", colour = NULL), size=6, show.legend = F)
       }
       
       if (is.null(masses))
