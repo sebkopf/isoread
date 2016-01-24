@@ -17,7 +17,8 @@ Imports:
     isotopia
 Suggests:
     testthat,
-    readxl
+    readxl,
+    rmarkdown
 Roxygen: list(wrap = FALSE)
 VignetteBuilder: knitr
 URL: https://github.com/sebkopf/isoread
@@ -37,3 +38,4 @@ Collate:
     'utilities.R'
     'zzz.R'
 RoxygenNote: 5.0.0
+VignetteBuilder: rmarkdown
