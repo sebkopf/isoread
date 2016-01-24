@@ -110,7 +110,7 @@ IrmsDualInletData <- setRefClass(
         return(massData[c("analysis", "cycle", masses)])
       else # long format
         return(melt(massData[c("analysis", "cycle", masses)], 
-                    .(analysis, cycle), variable.name = "mass", value.name = "intensity"))
+                    plyr::.(analysis, cycle), variable.name = "mass", value.name = "intensity"))
     },
     
     #' by default, returns all data table columns that are enabled with show = TRUE
@@ -131,8 +131,8 @@ IrmsDualInletData <- setRefClass(
       
       # summarize data table
       select <- select[select != "cycle"] # exclude cycle form the summary (since it gets summarized)
-      summary <- ddply(melt(dataTable[select], id.vars = NULL, variable.name = "Variable"), .(Variable), 
-                       plyr:::summarize,
+      summary <- ddply(melt(dataTable[select], id.vars = NULL, variable.name = "Variable"), plyr::.(Variable), 
+                       plyr::summarize,
                        Mean = mean(value),
                        `Std. Devi.` = sd(value),
                        `Std. Error.` = `Std. Devi.`/sqrt(length(value)))
@@ -155,20 +155,20 @@ IrmsDualInletData <- setRefClass(
         mass_label = sapply(plotOptions$masses, function(x) x$label)), by="mass")      
       x_breaks <- seq(min(plot.df$cycle), max(plot.df$cycle), by=1)
       
-      p <- ggplot(plot.df,
-             aes(cycle, intensity, shape = analysis, linetype = analysis, fill = mass)) + 
-        geom_line(colour = "black") + 
-        geom_point(colour = "black") + 
-        scale_x_continuous(breaks = x_breaks) +
-        scale_shape_manual("Type", values = c(21, 22)) + 
-        scale_linetype_manual("Type", values = c(1, 2)) + 
-        scale_fill_manual("Mass", breaks = names(plotOptions$masses),
+      p <- ggplot2::ggplot(plot.df,
+                           ggplot2::aes(cycle, intensity, shape = analysis, linetype = analysis, fill = mass)) + 
+        ggplot2::geom_line(colour = "black") + 
+        ggplot2::geom_point(colour = "black") + 
+        ggplot2::scale_x_continuous(breaks = x_breaks) +
+        ggplot2::scale_shape_manual("Type", values = c(21, 22)) + 
+        ggplot2::scale_linetype_manual("Type", values = c(1, 2)) + 
+        ggplot2::scale_fill_manual("Mass", breaks = names(plotOptions$masses),
                           labels = vapply(plotOptions$masses, function(x) x$label, FUN.VALUE=character(1)),
                           values = vapply(plotOptions$masses, function(x) x$color, FUN.VALUE=character(1)), 
                           guide = "none") +
-        theme_bw() + theme(legend.position = "bottom") + 
-        facet_wrap(~mass_label, scales = "free") + 
-        labs(y = plotOptions$labels$ymasses)
+        ggplot2::theme_bw() + ggplot2::theme(legend.position = "bottom") + 
+        ggplot2::facet_wrap(~mass_label, scales = "free") + 
+        ggplot2::labs(y = plotOptions$labels$ymasses)
       
       return(p)
     }

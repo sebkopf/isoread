@@ -1,6 +1,12 @@
 ---
 title: "Dual Inlet Intro"
-output: html_document
+author: "Sebastian Kopf"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Dual Inlet Intro}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 Here, we read two simple dual inlet isodat files that are provided as examples in the module. **isoread** takes all the information directly from the binary, which makes it easy to record each step of what is happening with the data. 

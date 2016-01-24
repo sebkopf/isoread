@@ -8,15 +8,17 @@ Description: R interface for accessing isotope ratio mass spectrometry data
     stored in isodat files.
 License: GPL-3
 LazyLoad: yes
-Depends:
-    plyr,
-    reshape2,
+Imports:
     ggplot2,
+    grid,
+    gridExtra (>= 2.0),
+    reshape2,
+    plyr,
     isotopia
 Suggests:
     testthat,
-    gridExtra,
-    xlsx
+    readxl,
+    rmarkdown
 Roxygen: list(wrap = FALSE)
 VignetteBuilder: knitr
 URL: https://github.com/sebkopf/isoread
@@ -35,3 +37,5 @@ Collate:
     'isoread.R'
     'utilities.R'
     'zzz.R'
+RoxygenNote: 5.0.0
+VignetteBuilder: rmarkdown
