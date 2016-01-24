@@ -1,0 +1,9 @@
+language: r
+sudo: required
+
+r_github_packages:
+  - jimhester/covr
+  - sebkopf/isotopia
+
+after_success:
+  - Rscript -e 'covr::codecov()'
