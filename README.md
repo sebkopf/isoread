@@ -42,7 +42,7 @@ obj$plot()
 obj$make_ggplot()
 ```
 
-The RMarkdown file underlying the full vignette for the introduction to processing continuous flow data is also available [directly in this repository](vignettes/continuous_flow_intro.Rmd) including the resulting [HTML output](https://rawgit.com/sebkopf/isoread/master/inst/doc/continuous_flow_intro.html)!
+The RMarkdown file underlying the full vignette for the introduction to processing continuous flow data is also available [directly in this repository](vignettes/continuous_flow_intro.Rmd) including the resulting [HTML output](https://rawgit.com/sebkopf/isoread/master/inst/doc/static/continuous_flow_intro.html)!
 
 #### Dual Inlet
 
@@ -57,7 +57,7 @@ obj$show()
 obj$make_ggplot()
 ```
 
-The RMarkdown file underlying the full vignette for the introduction to processing dual inlet data is also available [directly in this repository](vignettes/dual_inlet_intro.Rmd) including the resulting [HTML output](https://rawgit.com/sebkopf/isoread/master/inst/doc/dual_inlet_intro.html)!
+The RMarkdown file underlying the full vignette for the introduction to processing dual inlet data is also available [directly in this repository](vignettes/dual_inlet_intro.Rmd) including the resulting [HTML output](https://rawgit.com/sebkopf/isoread/master/inst/doc/static/dual_inlet_intro.html)!
 
 ## Development
 
