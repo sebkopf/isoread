@@ -21,7 +21,7 @@ Suggests:
     rmarkdown,
     knir
 Roxygen: list(wrap = FALSE)
-VignetteBuilder: knitr
+VignetteBuilder: rmarkdown
 URL: https://github.com/sebkopf/isoread
 BugReports: https://github.com/sebkopf/isoread/issues
 Collate:
