@@ -7,7 +7,7 @@ R interface to IRMS (isotope ratio mass spectrometry) file formats typically use
 
 This package allows the reading and processing of stable isotope data directly from the data files and thus provides a tool for reproducible data reduction. This package is definitely still a work-in-progress, however the master branch will always be a functional version (get the 'dev' branch for the active development version) and I'll make an effort to keep it backwards compatible as it evolves. 
 
-Currently, **isoread** supports reading files containing compound specific hydrogen isotope data, as well as clumped carbonate dual inlet data. The underlying object structure of the package is designed to allow easy expansion towards a number of different types of data and both supported file types are dynamically implemented and should be easily expandable to other continuous flow and dual inlet isotope data files, so expansions will hopefully come over time.
+Currently, **isoread** supports reading several isodat dual inlet (.did) and continuous flow (.dxf, .cf) file formats and has been tested for dual inlet carbonate data, continuous flow N2O and oxygen as well as compound specific hydrogen. The underlying object structure of the package is designed to allow easy expansion towards a number of different types of data and supported file types are dynamically implemented and should be easily expandable to other continuous flow and dual inlet isotope data files, so expansions will come over time. If you run into a file format that is not currently supported or any issues with supported formats, please file a request/bug report in the [issue tracker](/issues).
 
 ## How to use the isoread package
 
