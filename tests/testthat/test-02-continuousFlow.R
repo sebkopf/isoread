@@ -49,11 +49,12 @@ test_that("Testing general Isodat Continous Flow File (.dxf)", {
   expect_equal(names(test$get_data_table()),
                c("Component", "Start", "Rt", "End", "Ampl 44", "Ampl 45", "Ampl 46", "Nr.", "rIntensity 44", 
                  "rIntensity 45", "rIntensity 46", "rIntensity All", "Intensity 44", 
-                 "Intensity 45", "Intensity 46", "Intensity All", "Sample Dilution", 
+                 "Intensity 45", "Intensity 46", "Intensity All", "Sample Dilution", "List First Peak",
                  "rR 45N2O/44N2O", "rR 46N2O/44N2O", "Is Ref.?", "R 45N2O/44N2O", 
                  "Ref. Name", "rd 45N2O/44N2O", "d 45N2O/44N2O", "R 46N2O/44N2O", 
                  "rd 46N2O/44N2O", "d 46N2O/44N2O", "R 18O/16O", " 18O/16O", "AT% 15N/14N", 
-                 "R 15N/14N", " 15N/14N", "AT% 18O/16O", "R 17O/16O", "d 17O/16O"
+                 "R 15N/14N", " 15N/14N", "AT% 18O/16O", "R 17O/16O", "d 17O/16O",
+                 "Rps 46N2O/44N2O", "Rps 45N2O/44N2O"
                ))
   
   # refrence peak tests and changes
@@ -65,6 +66,15 @@ test_that("Testing general Isodat Continous Flow File (.dxf)", {
   # peak finding, identification and mapping
   expect_equal(test$get_peak_nr_by_rt(c(30, 350)), c(1, 6))
   expect_equal(round(test$get_peak_by_rt(350)$End, 3), 352.165)
+  
+  # testing file with added peaks
+  expect_that(test2 <- suppressMessages(isoread(system.file("extdata", "continuous_flow_example_added_peak.dxf", package="isoread"), 
+                                               read_mass_data = TRUE, clean_keys = FALSE, type = "CFLOW")), 
+              is_a("IsodatContinuousFlowFile"))
+  expect_equal(names(test2$get_data_table()),
+               c(names(dplyr::select(test$get_data_table(), -`Sample Dilution`)), 
+                 "Master Peak", "DeltaDelta 45N2O/44N2O", "DeltaDelta 46N2O/44N2O")
+               )
 })
 
 

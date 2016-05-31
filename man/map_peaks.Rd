@@ -5,7 +5,7 @@
 \title{Map peak table}
 \usage{
 map_peaks(iso, map, startRow = 3, libfile = NULL,
-  colClasses = c("numeric", "character", "character"), ...)
+  colClasses = c("numeric", "text", "text"), ...)
 }
 \arguments{
 \item{iso}{IrmsContinuousFlowData object(s)}

@@ -98,127 +98,204 @@ IsodatContinuousFlowFile <- setRefClass(
       extract_sequence_line_info()
       
       ##### data table #####
-      out <- list()
       
       # find first peak retention times (stupidly stored separately from the rest of the data)
       move_to_key("CGCPeakList")
-      # this is the "CGCPeak" key (too short to make it into the keys)
-      skip(grepRaw("\x43\x47\x43\x50\x65\x61\x6B", rawdata, offset = pos) + 7 + 64 - pos)
-      start_pos <- pos
-      start_binary <-  parse("binary", length = 8)
-      out$`Start\n[s]` <- parse("double", skip_first = -8)
-      #bg1 <- parse("double") # I think this is what's here, not currently used though
-      out$`Rt\n[s]` <- parse("double", skip_first = 12) 
-      out$`End\n[s]` <- parse("double", skip_first = 12)
-      
-      # find the amplitudes from where the start retention times are
-      for (mass in sub("mass", "", masses)) {
-        pos <<- as.integer(grepRaw(gsub(" ", "\\\\x", paste0(" ", start_binary)), rawdata, offset = start_pos) + 28)
-        out[[paste0("Ampl ", mass, "\n[mV]")]] <- parse("double")
-        start_pos <- pos
+       
+      # retention time and amplitude block parsing (which are somewhat separate from table)
+      parse_rt_amp_blocks <- function (.raw, label, offset = 1L) {
+        # either the CGCPeak tag or the tell tale hex sequence with 83 02 00 00
+        re_block <- "((\x43\x47\x43\x50\x65\x61\x6b)|(\\x00\\x00[^\\x00]\x83\x02\\x00\\x00))"
+        
+        # return empty list if nothing found
+        if (length(grepRaw(re_block, .raw, offset = offset)) == 0) return (list())
+        
+        # identify the repeat blocks (one for each mass, the retention times are repeated each time)
+        block_pos <- offset
+        block_hex <- c()
+        amp_vals <- c()
+        rt_vals <- c()
+        
+        # loop until all found
+        while (block_pos < length(.raw)) {
+          block_pos <- grepRaw(re_block, .raw, offset = block_pos) 
+          if (length(block_pos) == 0) break # done
+          
+          # offset
+          start <- parse_binary_data(.raw[block_pos:(block_pos + 7)], "binary", length = 7)
+          if (start == "43 47 43 50 65 61 6b") # = "CGCPeak"
+            block_pos <- block_pos + 71L
+          else
+            block_pos <- block_pos + 68L
+          
+          # keep whole hex block for debugging
+          block_hex <- c(block_hex, parse_binary_data(.raw[(block_pos):(block_pos + 44)], "binary", length = 44))
+          
+          # rts (only need from one/first block)
+          if (length(rt_vals) == 0) {
+            rt_vals <- c(
+              `Start\n[s]` = parse_binary_data(.raw[(block_pos):(block_pos+8)], "double"),
+              `Rt\n[s]` = parse_binary_data(.raw[(block_pos+20):(block_pos+28)], "double"),
+              `End\n[s]` = parse_binary_data(.raw[(block_pos+40):(block_pos+48)], "double")
+            )
+          }
+          
+          # amplitudes
+          amp_vals <- c(amp_vals, parse_binary_data(.raw[(block_pos + 28):(block_pos + 36)], "double"))
+          
+          # onward to next block
+          block_pos <- block_pos + 44
+        }
+        
+        # sanity check (none of the retention times should be negative or insanely large)
+        if (any(rt_vals < 0) || any(rt_vals < 1e-100) || any(rt_vals > 1e100)) {
+          stop("There was a problem trying to automatically parse the results table.\n",
+               "Retention time values do not make sense (cell label '", label, "'):\n",
+               paste(paste0(sub("\\n", " ", names(rt_vals)), " = ", rt_vals), collapse = "\n"), 
+               "\n In block:\n", block_hex[1],
+               call. = F)
+        }
+        
+        # sanity check (need as many amplitude values as masses)
+        if (length(masses) != length(amp_vals)) {
+          stop("There was a problem trying to automatically parse the results table.\n",
+               "Did not find the right number of amplitude values for all masses (", paste(masses, collapse = ", "),
+               " values (sequences):\n",
+               paste(paste0(amp_vals, " (", block_hex, ")"), collapse = "\n"),
+               call. = F)
+        }
+        names(amp_vals) <- paste0("Ampl ", sub("mass", "", masses), "\n[mV]")
+        
+        return(as.list(c(rt_vals, amp_vals)))
       }
+      
+      # row data
+      row_data <- list()
+      row <- 1
+      
+      # parse the first retention time and amplitude block (which does not fit the rest of the cell pattern)
+      row_data$r1 <- 
+        parse_rt_amp_blocks(
+          rawdata[(pos+16):find_key("CEvalDataItemTransferPart", occ = 1, fix = T)$byteStart],
+          label = "CGCPeak")
       
       # all the data values
       rawtable <- rawdata[find_key("CEvalDataIntTransferPart", occ = 1, fix = T)$byteEnd:
                             find_key("DetectorDataBlock", occ = 1, fix = T)$byteStart]
+      # table cell pattern
+      re_pattern <- list(
+        label = "([\x20-\x7e]\\x00){2,}", # label (at least 5 ascii long)
+        gap1 = "\xff\xfe\xff[^\xff]+\xff\xfe\xff.([\x20-\x7e]\\x00)*\xff\xfe\xff\\x00\xff\xfe\xff.", # gap
+        units1 = "([\x20-\x7e]\\x00){1,}", # units (at least 1 ascii long)
+        gap2 = "\xff\xfe\xff.", # gap between units
+        units2 = "([\x20-\x7e]\\x00){1,}", # second part of units (vs.)
+        gap3 = ".\\x00{3}\xff\xfe\xff.\\x00*([^\\x00]\\x00{4,})+", # gap before value
+        mode = "[\x01-\x08]\\x00\\x00\\x00", # mode block
+        type = "[\x01-\x08]\\x00\\x00\\x00" # type block
+      )
       
-      # data value pattern
-      dividers <- 
-        c(grepRaw(
-          paste0("([\x20-\x7e]\\x00){2,}", # label (at least 5 ascii long)
-                 "\xff\xfe\xff[^\xff]+\xff\xfe\xff.([\x20-\x7e]\\x00)*\xff\xfe\xff\\x00\xff\xfe\xff.", # gap
-                 "([\x20-\x7e]\\x00){1,}", # units (at least 1 ascii long)
-                 "\xff\xfe\xff.", # gap
-                 "([\x20-\x7e]\\x00){1,}", # second part of units (vs.)
-                 ".\\x00{3}\xff\xfe\xff.", # spacer after units
-                 "\\x00*[^\\x00]\\x00{3}[^\\x00]\\x00{3}" # gap before value
-          ),
-          rawtable, all=TRUE), length(rawtable))
+      # find all cell dividers using the combined pattern
+      dividers <- c(
+        grepRaw(paste(re_pattern, collapse = ""), rawtable, all=TRUE), 
+        length(rawtable)) 
+      new_data <- list()
       
       # loop through dividers
       for (i in 2:length(dividers)) {
+        
+        row_id <- paste0("r", row)
+        if (is.null(row_data[[row_id]])) row_data[[row_id]] <- list()
+        
         rawcell <- rawtable[dividers[i-1]:(dividers[i]-1)]
         
-        # label and units
-        label <- rawToChar(grepRaw("^([\x20-\x7e]\\x00){2,}", rawcell, value = TRUE)[c(TRUE, FALSE)])
-        end_of_gap <- grepRaw("\xff\xfe\xff\\x00\xff\xfe\xff.([\x20-\x7e]\\x00){1,}", rawcell) + 8L
-        units <- grepRaw("([\x20-\x7e]\\x00){1,}", rawcell, value = TRUE, offset = end_of_gap - 1)
-        vs <- grepRaw("\xff\xfe\xff.([\x20-\x7e]\\x00){1,}", rawcell, value = TRUE, offset = end_of_gap + length(units) - 1)
+        # recover each segment
+        raw_segs <- list()
+        position <- 1L
+        for (seg in names(re_pattern)) {
+          raw_segs[[seg]] <- grepRaw(re_pattern[[seg]], rawcell, value = TRUE, offset = position)
+          position <- position + length(raw_segs[[seg]])
+        }
+        hex_segs <- lapply(raw_segs, function(i) parse_binary_data(i, "binary", length = length(i)))
+        start_of_value <- sum(sapply(raw_segs, length)) + 1
         
-        if (label == "Overwritten")
+        # label check
+        label <- rawToChar(raw_segs$label[c(TRUE, FALSE)])
+        if (label %in% c("Overwritten"))
           next # we're not reading this tag
+      
         
-        # value data type
-        end_of_spacer <- end_of_gap + length(units) + length(vs) + 8 # position after vs and spacer
-        start_of_value <- 
-          grepRaw("[\x01-\x08]\\x00{3}[\x01-\x08]\\x00{3}", rawcell, 
-                  offset = end_of_spacer) + 8
-        value_mode <- parse_binary_data(rawcell[start_of_value-8], "binary")
-        value_type <- parse_binary_data(rawcell[start_of_value-4], "binary")
-        
-        if (length(start_of_value) == 0)
+        # general check
+        if (any(sapply(raw_segs, length) == 0 )) {
           stop("There was a problem trying to automatically parse the results table.\n",
-               "Can't find the start of value sequence for label '", label, "':\n",
-               parse_binary_data(rawcell, "binary", length = length(rawcell)))
+                  "Can't find all table cell segments for label '", label, "' within:\n",
+                  parse_binary_data(rawcell, "binary", length = length(rawcell)),
+                  "\n", paste(paste0(names(hex_segs), ": ", hex_segs), collapse = "\n"),
+          call. = FALSE)
+        }
         
+        # data type and check
+        value_mode <- parse_binary_data(raw_segs$mode, "binary")
+        value_type <- parse_binary_data(raw_segs$type, "binary")
         type <- 
           if (value_mode == "01") "character"
-        else if (value_mode == "02" && value_type == "08") "numeric"
+        else if (value_mode == "02" && value_type %in% c("08", "03")) "numeric"
         else if (value_mode == "02" && value_type == "04") "integer"
         else if (value_mode == "02" && value_type == "01") NA_character_
-        else stop("There was a problem trying to automatically parse the results table.\n",
-                  "Can't figure out what to do with this combination of value mode and type: ", 
-                  value_mode, " / ", value_type)
-        
-        # look for retention time block
-        pattern <- "(\xff\xfe\xff.([\x20-\x7e]\\x00)+){3}\xff\xfe\xff.{117}" # gap from last value to RT
-        rt_start <- 
-          grepRaw(pattern, rawcell, offset = start_of_value + 8) +
-          length(grepRaw(pattern, rawcell, offset = start_of_value + 8, value = TRUE))
-        if (length(rt_start) > 0) {
-          out[["Start\n[s]"]] <- c(out[["Start\n[s]"]], 
-                                   parse_binary_data(rawcell[(rt_start):(rt_start+8)], "double"))  
-          out[["Rt\n[s]"]] <- c(out[["Rt\n[s]"]],
-                                parse_binary_data(rawcell[(rt_start+20):(rt_start+28)], "double") )  
-          out[["End\n[s]"]] <- c(out[["End\n[s]"]], 
-                                 parse_binary_data(rawcell[(rt_start+40):(rt_start+48)], "double"))  
-          
-          start_binary <-  parse_binary_data(rawcell[(rt_start):(rt_start+8)], "binary", length = 8)
-          
-          # find the amplitudes from where the start retention times are
-          value_pos <- 1L
-          for (mass in sub("mass", "", masses)) {
-            value_pos <- grepRaw(gsub(" ", "\\\\x", paste0(" ", start_binary)), rawcell, offset = value_pos) + 28
-            out[[paste0("Ampl ", mass, "\n[mV]")]] <- 
-              c(out[[paste0("Ampl ", mass, "\n[mV]")]],
-                parse_binary_data(rawcell[(value_pos):(value_pos+48)], "double"))
-          } 
+        else  {
+          stop("There was a problem trying to automatically parse the results table.\n",
+               "Can't figure out what to do with the combination of value mode (", value_mode, ") and type (",
+               value_type, ") for label '", label, "' within:\n",
+               parse_binary_data(rawcell, "binary", length = length(rawcell)),
+               "\n", paste(paste0(names(values), ": ", values), collapse = "\n")
+               )
         }
-      
-        # pull out value and store in list
+        
+        # cell value
         if (!is.na(type)) {
           value <- 
             if (type == "character") 
-              rawToChar(grepRaw("^([\x20-\x7e]\\x00){1,}", rawcell[start_of_value:length(rawcell)], value = TRUE)[c(TRUE, FALSE)])
-          else if (type == "numeric") parse_binary_data(rawcell[(start_of_value):(start_of_value+8)], "double")
-          else if (type == "integer") as.integer(parse_binary_data(rawcell[(start_of_value):(start_of_value+4)], "short"))
+              rawToChar(grepRaw("^([\x20-\x7e]\\x00){1,}", 
+                                rawcell[start_of_value:length(rawcell)], value = TRUE)[c(TRUE, FALSE)])
+          else if (type == "numeric") 
+            parse_binary_data(rawcell[(start_of_value):(start_of_value+8)], "double")
+          else if (type == "integer") 
+            as.integer(parse_binary_data(rawcell[(start_of_value):(start_of_value+4)], "short"))
           else stop ("should never get here!")
+          
           key <- paste0(label, "\n")
-          if (! (unit <- rawToChar(units[c(TRUE, FALSE)])) %in% c("", " "))
+          if (! (unit <- rawToChar(raw_segs$units1[c(TRUE, FALSE)])) %in% c("", " "))
             key <- paste0(key, unit)
-          if (! (vs <- rawToChar(vs[-c(1:4)][c(TRUE, FALSE)])) %in% c("", " ")) 
+          if (! (vs <- rawToChar(raw_segs$units2[-c(1:4)][c(TRUE, FALSE)])) %in% c("", " ")) 
             key <- paste0(key, " vs ", vs)
-          out[[key]] <- c(out[[key]], value)      
+          
+          # add new data
+          new_data <- c(new_data, setNames(list(value), key))
         }
-      }
+        
+        # store new values in table
+        for (key in names(new_data)) {
+          if (!is.null(row_data[[row_id]][[key]]) && row_data[[row_id]][[key]] != new_data[[key]]) {
+            stop("There was a problem trying to automatically parse the results table.\n",
+                 "Can't figure out what to do with apparent non-identical replicate column entries in the same row:\n",
+                 "Found ", sub("\\n", "", key), " values ", row_data[[row_id]][[key]], " and ", new_data[[key]], "\nLatter block:",
+                 parse_binary_data(rawcell, "binary", length = length(rawcell)), call. = FALSE)
+          }
+          row_data[[row_id]][[key]] <- new_data[[key]]
+        }
+        
+        # look for end of row sequence
+        re_row_end <- "(\xff\xfe\xff.([\x20-\x7e]\\x00)+){3}\xff\xfe\xff.{117}" 
+        if (length(grepRaw(re_row_end, rawcell, offset = start_of_value)) > 0) {
+          row <- row + 1
+        }
+        
+        # retention time and amplitude (belongs to the next set so processed after row++)
+        new_data <- parse_rt_amp_blocks(rawcell, label, offset = start_of_value)
+        
+      } # END OF table cell loop
       
       # convert to data table
-      columns <- subset(ldply(out, function(i) data.frame(n = length(i)), .id = "key"), n > 1)
-      
-      if (!all(columns$n == columns$n[1]))
-        stop("Error: not all data table columns seem to have the same number of rows: ", 
-             paste(paste0(sub("\n", "", columns$key), " (", columns$n, ")"), collapse = ", "))
-      dataTable <<- data.frame(out[columns$key], check.names = F, stringsAsFactors = F)
+      dataTable <<- as.data.frame(dplyr::bind_rows(row_data))
       
       # unless dataTableColumns are already manually defined, define them here from the dataTable
       if (nrow(dataTableColumns) == 0) {

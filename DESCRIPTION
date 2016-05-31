@@ -14,7 +14,8 @@ Imports:
     gridExtra (>= 2.0),
     reshape2,
     plyr,
-    isotopia
+    isotopia,
+    dplyr
 Suggests:
     testthat,
     readxl,
@@ -38,4 +39,4 @@ Collate:
     'isoread.R'
     'utilities.R'
     'zzz.R'
-RoxygenNote: 5.0.0
+RoxygenNote: 5.0.1
