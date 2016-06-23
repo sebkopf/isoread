@@ -181,6 +181,13 @@ BinaryFile <- setRefClass(
       if (is.na(size <- file.info(path)$size) || file.info(path)$isdir == TRUE)
         stop("file does not exist: ", path)
       
+      show_warning <- function() {
+        warning("file creation date could not be determined on this operating system (", 
+                .Platform$OS.type, "/", Sys.info()[['sysname']], 
+                "), recovering 'last modified date' instead.", 
+                call. = FALSE, immediate. = TRUE, noBreaks. = TRUE)
+      }
+      
       creation_date <<- switch(
         .Platform$OS.type, #  Sys.info()[['sysname']] will provide Windows, Darwin and Linux instead
         windows = {
@@ -192,14 +199,16 @@ BinaryFile <- setRefClass(
           bdate <- NULL
           tryCatch({
             cmd <- paste0('stat -f "%DB" "', path, '"') # use BSD stat command
-            ctime_sec <- as.integer(system(cmd, intern=T)) # retrieve birth date in seconds from start of epoch (%DB)
+            ctime_sec <- as.integer(system(cmd, intern=T, ignore.stderr = T)) # retrieve birth date in seconds from start of epoch (%DB)
             bdate <- as.POSIXct(ctime_sec, origin = "1970-01-01", tz = "") # convert to POSIXct
-          }, error = function(e) warning(e)) # throw errors as warnings
+          }, 
+          error = function(e) show_warning(), 
+          warning = function(e) show_warning()) # throw errors as warnings
           if (is.null(bdate))
             bdate <- file.info(path)$mtime #FIXME: currently returning last modification time instead if there's any trouble
           bdate
         }, 
-        stop("don't know how to get file birth date on platform ", .Platform$OS.type))
+        stop("don't know how to get file creation date on platform ", .Platform$OS.type))
       
       # read
       con <- file(path, "rb")
