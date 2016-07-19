@@ -37,6 +37,7 @@ NULL
 #'    \item{'CO2_CLUMPED'}{ = instance(s) of the more specialized \code{\link{IsodatClumbedCO2File}} which extends \code{\link{IsodatDualInletFile}}}.
 #'    \item{'CFLOW'}{ = instance(s) of a basic \code{\link{IsodatContinuousFlowFile}} which extends \code{\link{IsodatContinuousFlowData}}}.
 #'    \item{'H_CSIA'}{ = instance(s) of \code{\link{IsodatHydrogenContinuousFlowFile}} which extends \code{\link{IsodatContinuousFlowFile}}}.
+#'    \item{'SCAN'}{ = instance(s) of \code{\link{IsodatScanFile}} which implements \code{\link{IrmsScanData}}}.    
 #' }
 #' If file names start with a number,
 #' then the number is used as key in the list, otherwise the whole filename is the key.
