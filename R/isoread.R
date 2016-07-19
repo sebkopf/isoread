@@ -50,7 +50,8 @@ isoread <- function(files, type, load_chroms = T, quiet = F, ...) {
     H_CSIA = 'IsodatHydrogenContinuousFlowFile',
     DI = 'IsodatDualInletFile',
     CO2_CLUMPED = 'IsodatClumpedCO2File',
-    stop("not a currently supported file type: '", type, "'"))
+    SCAN = 'IsodatScanFile',
+    stop("not a currently supported file type: '", type, "'"), call. = FALSE)
   
   files <- as.list(files)
   names(files) <- sapply(files, function(i) sub('^(\\d+).*', '\\1', basename(i)), simplify=T) 
