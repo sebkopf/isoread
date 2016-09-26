@@ -8,6 +8,11 @@
   if (!is.null(a)) a else b
 }
 
+get_file_extension <- function (x) {
+  pos <- regexpr("\\.([[:alnum:]]+)$", x)
+  ifelse(pos > -1L, substring(x, pos + 1L), "")
+}
+
 #' Wrapper for parsing binary data.
 #' 
 #' Convenience wrapper for parsing binary data.

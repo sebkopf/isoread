@@ -43,7 +43,22 @@ NULL
 #' then the number is used as key in the list, otherwise the whole filename is the key.
 #' If there is only one file, the object is returned directly.
 #' @export
-isoread <- function(files, type, load_chroms = T, quiet = F, ...) {
+isoread <- function(files, type = auto_detect(), load_chroms = T, quiet = F, ...) {
+  
+  # type from auto detection
+  auto_detect <- function() {
+    exts <- get_file_extension(files)
+    if (!all(exts == exts[1]))
+      stop("not all file extension are the same, cannot autodetect the file type", call. = FALSE)
+    switch(exts[1],
+           did = "DI",
+           cf = "H_CSIA",
+           dxf = "CFLOW",
+           scn = "SCAN",
+           stop("extension not recognized: ", exts[1], call. = FALSE))
+  }
+  
+  # class switch
   typeClass <- switch(
     type,
     CFLOW = 'IsodatContinuousFlowFile',
@@ -81,6 +96,23 @@ isoread_folder <- function(folder, type, extension = '.cf', ...) {
 }
 
 # =========== NOT unit tested yet!!!
+
+#' Generic plotting function for iso objects
+#' 
+#' Calls the make_ggplot function internally
+#' @export
+#' @note very basic implement, @SK fix this
+isoplot <- function(iso, type = c("gg", "interactive"), ...) {
+  p <- iso$make_ggplot(...)
+  if (missing(type)) type <- "gg"
+  if (type == "interactive") {
+    p <- p + theme(legend.position = "none")
+    class(p$mapping) <- "uneval"
+    plotly::ggplotly(p)
+  } else {
+    return(p)
+  }
+}
 
 #' Map peak table
 #' 

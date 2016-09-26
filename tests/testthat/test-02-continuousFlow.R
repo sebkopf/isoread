@@ -1,10 +1,18 @@
 context("Isoread / Continuous Flow test")
 
 
+test_that("Testing general isoread", {
+  expect_error(isoread("test.na"), "extension not recognized")
+  expect_error(isoread(c("test.did", "test.cf")), "not all file extension are the same")
+})
+
 test_that("Testing general Isodat Continous Flow File (.dxf)", {
   
   expect_that(test <- suppressMessages(isoread(system.file("extdata", "continuous_flow_example.dxf", package="isoread"), 
                                                read_mass_data = TRUE, clean_keys = FALSE, type = "CFLOW")), 
+              is_a("IsodatContinuousFlowFile"))
+  expect_that(test <- suppressMessages(isoread(system.file("extdata", "continuous_flow_example.dxf", package="isoread"), 
+                                               read_mass_data = TRUE, clean_keys = FALSE)), 
               is_a("IsodatContinuousFlowFile"))
   expect_that(nrow(test$keys), equals(1908)) # number of keys found in the test file (after IsodatFile style cleanup!)
   

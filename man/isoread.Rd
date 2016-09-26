@@ -4,7 +4,7 @@
 \alias{isoread}
 \title{Read isotope data files}
 \usage{
-isoread(files, type, load_chroms = T, quiet = F, ...)
+isoread(files, type = auto_detect(), load_chroms = T, quiet = F, ...)
 }
 \arguments{
 \item{type}{type of the files to be read

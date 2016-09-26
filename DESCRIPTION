@@ -1,7 +1,7 @@
 Package: isoread
 Type: Package
 Title: Read IRMS data from isodat files.
-Version: 0.3
+Version: 0.3.1
 Author: Sebastian Kopf
 Maintainer: Sebastian Kopf <seb.kopf@gmail.com>
 Description: R interface for accessing isotope ratio mass spectrometry data
@@ -20,7 +20,8 @@ Suggests:
     testthat,
     readxl,
     rmarkdown,
-    knitr
+    knitr,
+    plotly
 Roxygen: list(wrap = FALSE)
 VignetteBuilder: knitr
 URL: https://github.com/sebkopf/isoread
