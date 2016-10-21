@@ -21,7 +21,7 @@ get_file_extension <- function (x) {
 #' @param type data type see \code{\link{map_binary_data_type}} for details
 #' @param length how many instances of this object (for characters and raw this means length of string, all others a vector)
 #' @return read data
-parse_binary_data = function(data, type, length = 1) {
+parse_binary_data <- function(data, type, length = 1) {
   # map data type
   mapped_type <- map_binary_data_type(type)
   
@@ -37,6 +37,47 @@ parse_binary_data = function(data, type, length = 1) {
   
   return(read)
 }
+
+#' Get raw binary data in text form
+#' @return character string version of raw binary data
+get_raw_binary_data <- function(rawdata) {
+  parse_binary_data(rawdata, "binary", length = length(rawdata))
+}
+
+#' Get UNICODE text from raw binary data
+#' @param value if FALSE, returns pattern indices instead
+#' @param all if TRUE, returns vector of all found patterns
+#' @return vector of value(s) or start indices, NULL if none foud
+get_unicode <- function(rawdata, minlength = 1, value = TRUE, all = FALSE) {
+  regexp <- paste0("([\x20-\x7e]\\x00){", minlength, ",}")
+  re_matches <- grepRaw(regexp, rawdata, all = all, value = value) 
+  if (value) {
+    # convert to text
+    if (!all) re_matches <- list(re_matches)
+    return(sapply(re_matches, function(x) rawToChar(x[c(TRUE, FALSE)])))
+  } else {
+    # index vector
+    return(re_matches)
+  }
+}
+
+#' Get ASCII text from raw binary data
+#' @param value if FALSE, returns pattern indices instead
+#' @param all if TRUE, returns vector of all found patterns
+#' @return vector of value(s) or start indices, NULL if none foud
+get_ascii <- function(rawdata, minlength = 1, value = TRUE, all = FALSE) {
+  regexp <- paste0("([\x20-\x7e]){", minlength, ",}")
+  re_matches <- grepRaw(regexp, rawdata, all = all, value = value) 
+  if (value) {
+    # convert to text
+    if (!all) re_matches <- list(re_matches)
+    return(sapply(re_matches, function(x) rawToChar(x)))
+  } else {
+    # index vector
+    return(re_matches)
+  }
+}
+
 
 #' Binary data type mapping
 #' 
