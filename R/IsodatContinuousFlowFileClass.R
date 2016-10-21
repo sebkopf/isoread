@@ -67,14 +67,36 @@ IsodatContinuousFlowFile <- setRefClass(
         skip(8) # not sure what's in here
         
         # find end of the data block
-        end <- find_key("CAllMoleculeWeights", fixed = T)$byteStart
+        amw_pos <- find_key("CAllMoleculeWeights", fixed = T)$byteStart - 1
         
-        if (end <= pos)
-          stop("End of data block appears to be before start of data block, something must be identified wrong here!")
+        if (amw_pos <= pos)
+          stop("End of data block appears to be before start of data block, something must be identified wrong here!", call. = FALSE)
         
-        # number of data points (there appears to be a 56 byte gap at the end, not sure what's in there)
-        n <- (end - pos - 56) / (4 + length(masses) * 8)
+        # extract gas configuration
+        look_back_n <- 80 # how many bytes to look back
+        end_of_data_pattern <- list(
+          marker1 = "\xff\xfe\xff", # 3 long
+          gap1 = "(\\x00|[\x01-\x04]){21}", # 21 long
+          marker2 = "\xff\xfe\xff[\x01-\x04]", # 4 long
+          gas = "([\x20-\x7e]\\x00){2,}", # gas name (at least 2 ascii long)
+          marker3 = "\xff\xfe\xff",
+          gap2 = "\\x00{5}\xff\xff\x02\\x00\x13\\x00",
+          end = "$", # and then afterwards comes the CAllMoleculeWeightsblock
+          bla = ""
+        )
         
+        eod_pos <- grepRaw(paste(end_of_data_pattern, collapse = ""), rawdata[(amw_pos - look_back_n):amw_pos]) - 1
+        if (length(eod_pos) == 0) 
+          stop("Could not find gas configuration in binary file, unexpectd data pattern before CAllMoleculeWeights block: ",
+               get_raw_binary_data(rawdata[(end - 100):end]), call. = FALSE)
+        
+        # gas name
+        data$Gas <<- get_unicode(rawdata[(amw_pos - look_back_n + eod_pos):amw_pos])
+          
+        # number of data points as control
+        end <- amw_pos - look_back_n + eod_pos - 8 
+        n <- (end - pos) / (4 + length(masses) * 8)
+
         if (n %% 1 > 0) {
           # there was a problem here, proceed with caution (and floored n value)
           warning("Something doesn't quite add up in this file, the number of data points was identified as ", 

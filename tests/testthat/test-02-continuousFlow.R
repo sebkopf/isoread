@@ -18,7 +18,7 @@ test_that("Testing general Isodat Continous Flow File (.dxf)", {
   
   # general infp
   expect_that(names(test$data), 
-              equals(c("Info_Set", "Info_Peak", "Info_Sample", "Row", "Peak Center", 
+              equals(c("Gas", "Info_Set", "Info_Peak", "Info_Sample", "Row", "Peak Center", 
                        "Check Ref. Dilution", "H3 Stability", "H3 Factor", "Identifier 1", 
                        "Identifier 2", "Analysis", "Comment", "Preparation", "Method"
               ))) # data fields from file
