@@ -126,13 +126,18 @@ IsodatContinuousFlowFile <- setRefClass(
        
       # retention time and amplitude block parsing (which are somewhat separate from table)
       parse_rt_amp_blocks <- function (.raw, label, offset = 1L) {
-        # either the CGCPeak tag or the tell tale hex sequence with 83 02 00 00
-        re_block <- "((\x43\x47\x43\x50\x65\x61\x6b)|(\\x00\\x00[^\\x00]\x83\x02\\x00\\x00))"
+        # find either the CGCPeak tag or the tell tale hex sequence with 83 02 00 00
+        re_block <- "((\x43\x47\x43\x50\x65\x61\x6b)|(\\x00\\x00[\x01-\xff]\x83\x02\\x00\\x00))"
+        
         
         # return empty list if nothing found
         if (length(grepRaw(re_block, .raw, offset = offset)) == 0) return (list())
         
         # identify the repeat blocks (one for each mass, the retention times are repeated each time)
+        # NOTE: the retention time is only ALMOST repeated each time, if there are significant 
+        # chromatographic shifts (as is alwayst he case for H2), these will in fact NOT quite be
+        # identical. Here we fetch the first one (assuming that tends to be the major ion peak) and
+        # store it for all masses, but maybe it would be better to aquire all
         block_pos <- offset
         block_hex <- c()
         amp_vals <- c()
@@ -151,14 +156,14 @@ IsodatContinuousFlowFile <- setRefClass(
             block_pos <- block_pos + 68L
           
           # keep whole hex block for debugging
-          block_hex <- c(block_hex, parse_binary_data(.raw[(block_pos):(block_pos + 44)], "binary", length = 44))
+          block_hex <- c(block_hex, get_raw_binary_data(.raw[(block_pos):(block_pos + 44)]))
           
-          # rts (only need from one/first block)
+          # rts (only taking the one from one/first block assuming it's representative for all masses)
           if (length(rt_vals) == 0) {
             rt_vals <- c(
-              `Start\n[s]` = parse_binary_data(.raw[(block_pos):(block_pos+8)], "double"),
-              `Rt\n[s]` = parse_binary_data(.raw[(block_pos+20):(block_pos+28)], "double"),
-              `End\n[s]` = parse_binary_data(.raw[(block_pos+40):(block_pos+48)], "double")
+              `Start\n[s]` = parse_binary_data(.raw[(block_pos):(block_pos+7)], "double"),
+              `Rt\n[s]` = parse_binary_data(.raw[(block_pos+20):(block_pos+27)], "double"),
+              `End\n[s]` = parse_binary_data(.raw[(block_pos+40):(block_pos+47)], "double")
             )
           }
           
@@ -181,9 +186,10 @@ IsodatContinuousFlowFile <- setRefClass(
         # sanity check (need as many amplitude values as masses)
         if (length(masses) != length(amp_vals)) {
           stop("There was a problem trying to automatically parse the results table.\n",
-               "Did not find the right number of amplitude values for all masses (", paste(masses, collapse = ", "),
-               " values (sequences):\n",
-               paste(paste0(amp_vals, " (", block_hex, ")"), collapse = "\n"),
+               "Did not find the right number of amplitude values for peak at retention time ", round(rt_vals[2], 3), 
+               " for all masses ", paste(masses, collapse = ", "),
+               ": amplitude  (sequences in parenthesis):\n",
+               paste(paste0(round(amp_vals, 2), " (", block_hex, ")"), collapse = "\n"),
                call. = F)
         }
         names(amp_vals) <- paste0("Ampl ", sub("mass", "", masses), "\n[mV]")

@@ -41,7 +41,7 @@ parse_binary_data <- function(data, type, length = 1) {
 #' Get raw binary data in text form
 #' @return character string version of raw binary data
 get_raw_binary_data <- function(rawdata) {
-  parse_binary_data(rawdata, "binary", length = length(rawdata))
+  toupper(parse_binary_data(rawdata, "binary", length = length(rawdata)))
 }
 
 #' Get UNICODE text from raw binary data
