@@ -31,7 +31,7 @@ IsodatScanFile <- setRefClass(
       
       # find recorded masses
       masses <- find_key(
-        "Mass  \\d+\\.\\d+ \\[C\\d+\\]",
+        "Mass \\s+\\d+\\.\\d+ \\[C\\d+\\]",
         byte_min = find_key("CScanStorage", occ = 1, fix = T)$byteEnd,
         byte_max = find_key("CPlotRange", occ = 1, fix = T)$byteStart)$value
       
@@ -39,7 +39,7 @@ IsodatScanFile <- setRefClass(
         stop("Error: no keys named 'Mass ..' found. Cannot identify recorded mass traces in this file.", call. = FALSE)
       
       # unless mass plot options are already manually defined (in init_irms_data), define them automatically here and assign colors
-      mass_names <- sub("Mass  (\\d+).*", "mass\\1", masses)
+      mass_names <- sub("Mass \\s+(\\d+).*", "mass\\1", masses)
       if (length(plotOptions$masses) == 0) {
         # color blind friendly pallete (9 colors)
         palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
