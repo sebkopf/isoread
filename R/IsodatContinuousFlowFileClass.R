@@ -76,19 +76,18 @@ IsodatContinuousFlowFile <- setRefClass(
         look_back_n <- 80 # how many bytes to look back
         end_of_data_pattern <- list(
           marker1 = "\xff\xfe\xff", # 3 long
-          gap1 = "(\\x00|[\x01-\x04]){21}", # 21 long
+          gap1 = "(\\x00|[\x01-\x10]){21}", # 21 long
           marker2 = "\xff\xfe\xff[\x01-\x04]", # 4 long
           gas = "([\x20-\x7e]\\x00){2,}", # gas name (at least 2 ascii long)
           marker3 = "\xff\xfe\xff",
           gap2 = "\\x00{5}\xff\xff\x02\\x00\x13\\x00",
-          end = "$", # and then afterwards comes the CAllMoleculeWeightsblock
-          bla = ""
+          end = "$" # and then afterwards comes the CAllMoleculeWeightsblock
         )
         
         eod_pos <- grepRaw(paste(end_of_data_pattern, collapse = ""), rawdata[(amw_pos - look_back_n):amw_pos]) - 1
         if (length(eod_pos) == 0) 
           stop("Could not find gas configuration in binary file, unexpectd data pattern before CAllMoleculeWeights block: ",
-               get_raw_binary_data(rawdata[(end - 100):end]), call. = FALSE)
+               get_raw_binary_data(rawdata[(amw_pos - 100):amw_pos]), call. = FALSE)
         
         # gas name
         data$Gas <<- get_unicode(rawdata[(amw_pos - look_back_n + eod_pos):amw_pos])
