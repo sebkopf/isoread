@@ -1,7 +1,7 @@
 Package: isoread
 Type: Package
 Title: Read IRMS data from isodat files.
-Version: 0.3.5
+Version: 0.3.6
 Author: Sebastian Kopf
 Maintainer: Sebastian Kopf <seb.kopf@gmail.com>
 Description: R interface for accessing isotope ratio mass spectrometry data
@@ -15,7 +15,9 @@ Imports:
     reshape2,
     plyr,
     dplyr,
-    isotopia
+    isotopia,
+    Rcpp,
+    stringr
 Suggests:
     testthat,
     readxl,
