@@ -3,6 +3,8 @@ isoread
 [![Build Status](https://travis-ci.org/sebkopf/isoread.svg)](https://travis-ci.org/sebkopf/isoread)
 [![codecov.io](https://codecov.io/github/sebkopf/isoread/coverage.svg?branch=master)](https://codecov.io/github/sebkopf/isoread?branch=master)
 
+**Please note:**  isoread is deprecated, please use [isoreader](https://kopflab.github.io/isoreader/) instead.
+
 R interface to IRMS (isotope ratio mass spectrometry) file formats typically used in stable isotope geochemistry. 
 
 This package allows the reading and processing of stable isotope data directly from the data files and thus provides a tool for reproducible data reduction. This package is definitely still a work-in-progress, however the master branch will always be a functional version (get the 'dev' branch for the active development version) and I'll make an effort to keep it backwards compatible as it evolves. 
